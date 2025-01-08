@@ -78,17 +78,17 @@ NodeParam: &NodeParam {type: http, interval: 3600, health-check: {enable: true, 
 # 锚点 - 节点订阅
 proxy-providers: 
   101:
-    url: 'https://129.204.171.137/cornets/api/v1/client/subscribe?token=735e00e26938754917ee8088bdee1e27'
+    url: 'http://ovh.xgjs1.xyz/api/v1/client/subscribe?token=c07a58625f9f222e059d31b62b12de78'
     <<: *NodeParam
     path: './proxy_providers/101.yaml'
     override:
-      additional-prefix: "[失效] " # 为订阅节点添加机场名称前缀
+      additional-prefix: "[可用] " # 为订阅节点添加机场名称前缀
   102:
-    url: 'https://mojie.app/api/v1/client/subscribe?token=08837170589358037c659918f170eed3'
+    url: ''
     <<: *NodeParam
     path: './proxy_providers/102.yaml'
     override:
-      additional-prefix: "[可用] " # 为订阅节点添加机场名称前缀
+      additional-prefix: "[失效] " # 为订阅节点添加机场名称前缀
 
 # 锚点 - 节点筛选组
 FilterHK: &FilterHK '^(?=.*((?i)🇭🇰|香港|(\b(HK|Hong)\b)))(?!.*((?i)回国|校园|游戏|🎮|(\b(GAME)\b))).*$'
