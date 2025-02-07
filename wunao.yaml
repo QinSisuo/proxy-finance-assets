@@ -78,7 +78,7 @@ NodeParam: &NodeParam {type: http, interval: 3600, health-check: {enable: true, 
 # 锚点 - 节点订阅
 proxy-providers: 
   101:
-    url: 'http://ovh.xgjs1.xyz/api/v1/client/subscribe?token=c07a58625f9f222e059d31b62b12de78'
+    url: 'http://xg.jiasu7.xyz/api/v1/client/subscribe?token=6c2a9363030cb275d500b642a032b096'
     <<: *NodeParam
     path: './proxy_providers/101.yaml'
     override:
