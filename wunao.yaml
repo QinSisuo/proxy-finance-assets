@@ -84,7 +84,7 @@ proxy-providers:
     override:
       additional-prefix: "[可用] " # 为订阅节点添加机场名称前缀
   102:
-    url: ''
+    url: 'http://xg.jiasu7.xyz/api/v1/client/subscribe?token=6c2a9363030cb275d500b642a032b096'
     <<: *NodeParam
     path: './proxy_providers/102.yaml'
     override:
