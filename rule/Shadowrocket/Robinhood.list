@@ -1,0 +1,15 @@
+# NAME: Robinhood
+# AUTHOR: qinsisuo
+# UPDATED: 2025-11-02 00:00:00
+# DOMAIN-SUFFIX: 1
+# IP-CIDR: 4
+# TOTAL: 5
+
+# 按域名分流，覆盖 robinhood.com 及其所有子域
+DOMAIN-SUFFIX,robinhood.com,Proxy_US
+
+# 按 IP 网段分流（可选），这些网段属于 Robinhood Markets, Inc.
+IP-CIDR,134.195.0.0/24,Proxy_US,no-resolve
+IP-CIDR,134.195.1.0/24,Proxy_US,no-resolve
+IP-CIDR,134.195.2.0/24,Proxy_US,no-resolve
+IP-CIDR,23.157.80.0/24,Proxy_US,no-resolve
