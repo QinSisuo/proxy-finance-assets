@@ -1,0 +1,29 @@
+# NAME: IBKR
+# AUTHOR: qinsisuo
+# UPDATED: 2025-11-02 00:00:00
+# DOMAIN-SUFFIX: 11
+# IP-CIDR: 12
+# TOTAL: 23
+DOMAIN-SUFFIX,interactivebrokers.com
+DOMAIN-SUFFIX,interactivebrokers.com.hk
+DOMAIN-SUFFIX,interactivebrokers.co.in
+DOMAIN-SUFFIX,interactivebrokers.co.jp
+DOMAIN-SUFFIX,interactivebrokers.com.au
+DOMAIN-SUFFIX,clientam.com
+DOMAIN-SUFFIX,clientam.com.hk
+DOMAIN-SUFFIX,ibllc.com
+DOMAIN-SUFFIX,ibgdr.com
+DOMAIN-SUFFIX,timberhill.com
+DOMAIN-SUFFIX,futuretrade.com
+IP-CIDR,63.86.206.0/24,no-resolve
+IP-CIDR,8.17.22.0/24,no-resolve
+IP-CIDR,206.106.137.0/24,no-resolve
+IP-CIDR,208.245.107.0/24,no-resolve
+IP-CIDR,65.207.192.0/24,no-resolve
+IP-CIDR,103.38.90.0/24,no-resolve
+IP-CIDR,103.38.91.0/24,no-resolve
+IP-CIDR,202.1.6.0/24,no-resolve
+IP-CIDR,64.190.196.0/24,no-resolve
+IP-CIDR,64.190.197.0/24,no-resolve
+IP-CIDR,209.127.240.0/24,no-resolve
+IP-CIDR,209.127.241.0/24,no-resolve
