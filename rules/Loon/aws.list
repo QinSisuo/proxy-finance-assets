@@ -1,49 +1,42 @@
-# =====================================
-# AWS Direct Rule for Loon
-# Author: trader李 (customized)
-# Description: Force all AWS traffic to DIRECT
-# =====================================
+# NAME: AWS-Direct
+# AUTHOR: trader李 (customized)
+# UPDATED: 2025-12-03 00:00:00
+# DOMAIN: 0
+# DOMAIN-SUFFIX: 16
+# DOMAIN-KEYWORD: 2
+# IP-CIDR: 4
+# TOTAL: 22
 
-# ---- AWS Core Domains ----
-DOMAIN-SUFFIX,amazonaws.com,DIRECT
-DOMAIN-SUFFIX,aws.amazon.com,DIRECT
-DOMAIN-SUFFIX,cloudfront.net,DIRECT
-DOMAIN-SUFFIX,compute.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,ec2.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,s3.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,s3.amazonaws.com.cn,DIRECT
-DOMAIN-SUFFIX,cloudwatch.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,dynamodb.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,sts.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,lambda.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,logs.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,route53.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,elb.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,rds.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,elasticache.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,monitoring.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,apigateway.amazonaws.com,DIRECT
-DOMAIN-SUFFIX,identity.amazonaws.com,DIRECT
+# —— 核心 AWS 服务 —— 
+DOMAIN-SUFFIX,amazonaws.com
+DOMAIN-SUFFIX,aws.amazon.com
+DOMAIN-SUFFIX,cloudfront.net
+DOMAIN-SUFFIX,compute.amazonaws.com
+DOMAIN-SUFFIX,ec2.amazonaws.com
+DOMAIN-SUFFIX,s3.amazonaws.com
+DOMAIN-SUFFIX,cloudwatch.amazonaws.com
+DOMAIN-SUFFIX,dynamodb.amazonaws.com
+DOMAIN-SUFFIX,sts.amazonaws.com
+DOMAIN-SUFFIX,lambda.amazonaws.com
+DOMAIN-SUFFIX,logs.amazonaws.com
+DOMAIN-SUFFIX,route53.amazonaws.com
+DOMAIN-SUFFIX,elasticache.amazonaws.com
+DOMAIN-SUFFIX,rds.amazonaws.com
+DOMAIN-SUFFIX,monitoring.amazonaws.com
+DOMAIN-SUFFIX,apigateway.amazonaws.com
 
-# ---- AWS China Services (optional safe) ----
-DOMAIN-SUFFIX,amazonaws.com.cn,DIRECT
-DOMAIN-SUFFIX,amazonaws.cn,DIRECT
-DOMAIN-SUFFIX,amazonaws-china.com,DIRECT
+# —— 关键词匹配（兜底直连）——
+DOMAIN-KEYWORD,amazon
+DOMAIN-KEYWORD,aws
 
-# ---- AWS CDN Edge ----
-DOMAIN-KEYWORD,amazon,DIRECT
-DOMAIN-KEYWORD,aws,DIRECT
+# —— AWS 常见 IP 网段（含 EC2 / S3 / CloudFront）——
+IP-CIDR,3.0.0.0/8,no-resolve
+IP-CIDR,13.0.0.0/8,no-resolve
+IP-CIDR,18.0.0.0/8,no-resolve
+IP-CIDR,52.0.0.0/8,no-resolve
 
-# ---- AWS IP Ranges ----
-# Common EC2/S3/CloudFront ranges
-IP-CIDR,3.0.0.0/8,DIRECT,no-resolve
-IP-CIDR,13.0.0.0/8,DIRECT,no-resolve
-IP-CIDR,18.0.0.0/8,DIRECT,no-resolve
-IP-CIDR,52.0.0.0/8,DIRECT,no-resolve
+# —— 自定义 SSH 端口（你的 EC2 已改为 2222）——
+# 注意：DEST-PORT 不计入 TOTAL 数量，由 Loon 规则系统处理
+DEST-PORT,2222
 
-# ---- EC2 Custom SSH Port (your setting) ----
-DEST-PORT,2222,DIRECT
-
-# =====================================
-# END OF FILE
-# =====================================
+# —— END —— 
