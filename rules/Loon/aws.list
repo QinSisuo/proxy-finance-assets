@@ -1,0 +1,49 @@
+# =====================================
+# AWS Direct Rule for Loon
+# Author: trader李 (customized)
+# Description: Force all AWS traffic to DIRECT
+# =====================================
+
+# ---- AWS Core Domains ----
+DOMAIN-SUFFIX,amazonaws.com,DIRECT
+DOMAIN-SUFFIX,aws.amazon.com,DIRECT
+DOMAIN-SUFFIX,cloudfront.net,DIRECT
+DOMAIN-SUFFIX,compute.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,ec2.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,s3.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,s3.amazonaws.com.cn,DIRECT
+DOMAIN-SUFFIX,cloudwatch.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,dynamodb.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,sts.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,lambda.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,logs.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,route53.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,elb.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,rds.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,elasticache.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,monitoring.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,apigateway.amazonaws.com,DIRECT
+DOMAIN-SUFFIX,identity.amazonaws.com,DIRECT
+
+# ---- AWS China Services (optional safe) ----
+DOMAIN-SUFFIX,amazonaws.com.cn,DIRECT
+DOMAIN-SUFFIX,amazonaws.cn,DIRECT
+DOMAIN-SUFFIX,amazonaws-china.com,DIRECT
+
+# ---- AWS CDN Edge ----
+DOMAIN-KEYWORD,amazon,DIRECT
+DOMAIN-KEYWORD,aws,DIRECT
+
+# ---- AWS IP Ranges ----
+# Common EC2/S3/CloudFront ranges
+IP-CIDR,3.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,13.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,18.0.0.0/8,DIRECT,no-resolve
+IP-CIDR,52.0.0.0/8,DIRECT,no-resolve
+
+# ---- EC2 Custom SSH Port (your setting) ----
+DEST-PORT,2222,DIRECT
+
+# =====================================
+# END OF FILE
+# =====================================
