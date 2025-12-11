@@ -1,0 +1,24 @@
+# NAME: TradingView
+# AUTHOR: qinsisuo
+# UPDATED: 2025-11-02 00:00:00
+
+# —— 必要域名（含 WebSocket 实时行情）——
+DOMAIN,data.tradingview.com
+DOMAIN,auth.tradingview.com
+
+# —— 主域名及关联站点 —— 
+DOMAIN-SUFFIX,tradingview.com
+DOMAIN-SUFFIX,tradingviewstore.com
+
+# —— 关键词匹配 —— 
+DOMAIN-KEYWORD,tradingview
+
+# —— TradingView 常见服务 IP 段 —— 
+IP-CIDR,76.164.232.0/24,no-resolve
+IP-CIDR,76.164.233.0/24,no-resolve
+IP-CIDR,104.238.216.0/24,no-resolve
+IP-CIDR,104.238.217.0/24,no-resolve
+IP-CIDR,52.89.214.238/32,no-resolve
+IP-CIDR,34.212.75.30/32,no-resolve
+IP-CIDR,54.218.53.128/32,no-resolve
+IP-CIDR,52.32.178.7/32,no-resolve
