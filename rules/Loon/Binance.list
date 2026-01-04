@@ -26,6 +26,7 @@ DOMAIN,api1.binance.com
 DOMAIN,api2.binance.com
 DOMAIN,api3.binance.com
 DOMAIN,api4.binance.com
+DOMAIN,accounts.binance.com
 
 # --- Spot WebSocket Streams & WebSocket API (official) ---
 DOMAIN,stream.binance.com
