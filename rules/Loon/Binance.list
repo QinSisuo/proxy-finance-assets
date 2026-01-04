@@ -1,0 +1,44 @@
+# NAME: Binance (Global)
+# TYPE: Loon RULE-SET
+# UPDATED: 2026-01-04
+# NOTE: Core endpoints from official Binance docs. Add more domains from your Loon logs if needed.
+
+# --- Main site ---
+DOMAIN-SUFFIX,binance.com
+
+# --- Static assets (commonly used by web/app) ---
+DOMAIN-SUFFIX,bnbstatic.com
+
+# --- Spot REST base endpoints (official) ---
+DOMAIN,api.binance.com
+DOMAIN,api-gcp.binance.com
+DOMAIN,api1.binance.com
+DOMAIN,api2.binance.com
+DOMAIN,api3.binance.com
+DOMAIN,api4.binance.com
+
+# --- Spot WebSocket Streams & WebSocket API (official) ---
+DOMAIN,stream.binance.com
+DOMAIN,ws-api.binance.com
+
+# --- USDⓈ-M Futures (official base endpoints / market streams) ---
+DOMAIN,fapi.binance.com
+DOMAIN,fstream.binance.com
+DOMAIN,ws-fapi.binance.com
+
+# --- COIN-M Futures / DAPI related ---
+DOMAIN,dapi.binance.com
+DOMAIN,dstream.binance.com
+DOMAIN,ws-dapi.binance.com
+
+# --- Options (official base endpoint) ---
+DOMAIN,eapi.binance.com
+
+# --- Portfolio Margin (official base endpoint) ---
+DOMAIN,papi.binance.com
+
+# --- Public market data only endpoints (official) ---
+DOMAIN-SUFFIX,binance.vision
+DOMAIN,data-api.binance.vision
+DOMAIN,data-stream.binance.vision
+DOMAIN,data.binance.vision
