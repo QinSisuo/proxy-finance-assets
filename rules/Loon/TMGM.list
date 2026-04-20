@@ -1,0 +1,38 @@
+# NAME: TMGM
+# AUTHOR: qinsisuo
+# UPDATED: 2026-04-21 00:31:21 +0800
+# DOMAIN: 7
+# DOMAIN-SUFFIX: 19
+# TOTAL: 26
+
+# —— 官方主域 / Portal —— 
+DOMAIN-SUFFIX,tmgmplatform.com
+DOMAIN-SUFFIX,tmgm.com
+DOMAIN-SUFFIX,tmgmasia.com
+DOMAIN-SUFFIX,tmgmg.com
+DOMAIN,portal.cninvpro.com
+DOMAIN,tmgm-cdn.oss-cn-hongkong.aliyuncs.com
+DOMAIN,tmgm-prod-resources.s3.ap-east-1.amazonaws.com
+DOMAIN,tmgm.zendesk.com
+DOMAIN,store.tm-fxzho.com
+
+# —— App 核心 H5 / API / 资源 —— 
+DOMAIN-SUFFIX,tasquidverse.com
+DOMAIN-SUFFIX,taoctoworld.com
+DOMAIN-SUFFIX,taseacoral.com
+DOMAIN-SUFFIX,tasharkzone.com
+DOMAIN-SUFFIX,taturtleisle.com
+DOMAIN-SUFFIX,zerogridtech.com
+DOMAIN-SUFFIX,neurogridtech.com
+DOMAIN-SUFFIX,vectordynamo.com
+DOMAIN-SUFFIX,nanodynecore.com
+DOMAIN-SUFFIX,yzercore.com
+DOMAIN-SUFFIX,nexaperture.com
+DOMAIN-SUFFIX,prismalytic.com
+DOMAIN-SUFFIX,nanobytecloud.com
+DOMAIN-SUFFIX,ultradynatech.com
+DOMAIN-SUFFIX,cyberfluxium.com
+DOMAIN,app-analytics-services.com
+DOMAIN,app-static.talesofeternity.com
+
+# —— END —— 
