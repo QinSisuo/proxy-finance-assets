@@ -1,0 +1,56 @@
+# NAME: Futubull
+# AUTHOR: qinsisuo
+# UPDATED: 2026-06-05 20:34:35 +0800
+# DOMAIN-SUFFIX: 16
+# IP-CIDR: 22
+# TOTAL: 38
+
+# Futu / Futubull core
+DOMAIN-SUFFIX,futunn.com
+DOMAIN-SUFFIX,futustatic.com
+DOMAIN-SUFFIX,futuhk.com
+DOMAIN-SUFFIX,futubull.com
+
+# Auth fallback observed in packet capture
+DOMAIN-SUFFIX,futunh.com
+DOMAIN-SUFFIX,futuhn.com
+
+# Moomoo related domains observed in Futu client config
+DOMAIN-SUFFIX,moomoo.com
+DOMAIN-SUFFIX,moomooapp.com
+DOMAIN-SUFFIX,moomoobull.com
+DOMAIN-SUFFIX,moomoocn.com
+DOMAIN-SUFFIX,moomooequity.com
+DOMAIN-SUFFIX,moomootrustee.com
+
+# Regional / business domains observed in Futu client config
+DOMAIN-SUFFIX,futuau.com
+DOMAIN-SUFFIX,futuesop.com
+DOMAIN-SUFFIX,futufin.com
+DOMAIN-SUFFIX,fututrustee.com
+
+# Auth / channel fallback IPs observed in packet capture
+IP-CIDR,1.14.242.49/32,no-resolve
+IP-CIDR,43.132.106.6/32,no-resolve
+IP-CIDR,43.142.232.62/32,no-resolve
+IP-CIDR,43.153.191.154/32,no-resolve
+IP-CIDR,49.51.78.222/32,no-resolve
+IP-CIDR,49.234.241.65/32,no-resolve
+IP-CIDR,49.234.241.94/32,no-resolve
+IP-CIDR,111.230.125.153/32,no-resolve
+IP-CIDR,115.159.18.59/32,no-resolve
+IP-CIDR,118.89.98.77/32,no-resolve
+IP-CIDR,119.28.37.77/32,no-resolve
+IP-CIDR,119.28.37.206/32,no-resolve
+IP-CIDR,119.28.218.227/32,no-resolve
+IP-CIDR,119.91.245.125/32,no-resolve
+IP-CIDR,119.91.245.213/32,no-resolve
+IP-CIDR,121.5.99.18/32,no-resolve
+IP-CIDR,121.5.99.180/32,no-resolve
+IP-CIDR,124.156.124.214/32,no-resolve
+IP-CIDR,124.156.124.226/32,no-resolve
+IP-CIDR,129.226.79.239/32,no-resolve
+IP-CIDR,170.106.49.68/32,no-resolve
+IP-CIDR,170.106.49.111/32,no-resolve
+
+# END
