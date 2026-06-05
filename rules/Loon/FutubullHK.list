@@ -1,0 +1,61 @@
+# NAME: FutubullHK
+# AUTHOR: qinsisuo
+# UPDATED: 2026-06-05 20:43:15 +0800
+# DOMAIN: 6
+# DOMAIN-SUFFIX: 13
+# IP-CIDR: 25
+# TOTAL: 44
+
+# Futu HK core and legacy domains
+DOMAIN-SUFFIX,futuhk.com
+DOMAIN-SUFFIX,futu.hk
+DOMAIN-SUFFIX,futunn.com
+DOMAIN-SUFFIX,futustatic.com
+DOMAIN-SUFFIX,futubull.com
+DOMAIN-SUFFIX,futu5.com
+DOMAIN-SUFFIX,futu5-sec.com
+
+# Futu HK auth fallback and related service domains
+DOMAIN-SUFFIX,futunh.com
+DOMAIN-SUFFIX,futuhn.com
+DOMAIN-SUFFIX,futuie.com
+DOMAIN-SUFFIX,futupayhk.com
+DOMAIN-SUFFIX,fututech.hk
+DOMAIN-SUFFIX,fututrustee.com
+
+# Exact third-party endpoints observed while using Futubull HK
+DOMAIN,app.airstarbank.com
+DOMAIN,app.elebank.com
+DOMAIN,license.vod2.myqcloud.com
+DOMAIN,promote-image-1251001049.cos.accelerate.myqcloud.com
+DOMAIN,promote-image-hk-1251001049.cos.accelerate.myqcloud.com
+DOMAIN,sdreport.moomoo.com
+
+# Auth and TCP channel fallback IPs observed in packet capture
+IP-CIDR,1.14.242.49/32,no-resolve
+IP-CIDR,43.132.106.6/32,no-resolve
+IP-CIDR,43.142.232.62/32,no-resolve
+IP-CIDR,43.153.191.154/32,no-resolve
+IP-CIDR,49.51.78.222/32,no-resolve
+IP-CIDR,49.234.241.65/32,no-resolve
+IP-CIDR,49.234.241.94/32,no-resolve
+IP-CIDR,106.55.66.8/32,no-resolve
+IP-CIDR,111.230.125.153/32,no-resolve
+IP-CIDR,111.230.214.240/32,no-resolve
+IP-CIDR,115.159.18.59/32,no-resolve
+IP-CIDR,118.89.98.77/32,no-resolve
+IP-CIDR,119.28.37.77/32,no-resolve
+IP-CIDR,119.28.37.206/32,no-resolve
+IP-CIDR,119.28.218.227/32,no-resolve
+IP-CIDR,119.91.245.125/32,no-resolve
+IP-CIDR,119.91.245.213/32,no-resolve
+IP-CIDR,121.5.99.18/32,no-resolve
+IP-CIDR,121.5.99.180/32,no-resolve
+IP-CIDR,124.156.124.214/32,no-resolve
+IP-CIDR,124.156.124.226/32,no-resolve
+IP-CIDR,129.226.79.239/32,no-resolve
+IP-CIDR,162.14.3.250/32,no-resolve
+IP-CIDR,170.106.49.68/32,no-resolve
+IP-CIDR,170.106.49.111/32,no-resolve
+
+# END
