@@ -1,20 +1,48 @@
 # NAME: IBKR
 # AUTHOR: qinsisuo
-# UPDATED: 2025-11-02 00:00:00
-# DOMAIN-SUFFIX: 11
+# UPDATED: 2026-06-13 01:49:08 +0800
+# DOMAIN-SUFFIX: 29
 # IP-CIDR: 12
-# TOTAL: 23
+# TOTAL: 41
+
+# Official regional websites
 DOMAIN-SUFFIX,interactivebrokers.com
-DOMAIN-SUFFIX,interactivebrokers.com.hk
+DOMAIN-SUFFIX,interactivebrokers.ca
+DOMAIN-SUFFIX,interactivebrokers.ch
 DOMAIN-SUFFIX,interactivebrokers.co.in
+DOMAIN-SUFFIX,interactivebrokers.co.uk
 DOMAIN-SUFFIX,interactivebrokers.co.jp
+DOMAIN-SUFFIX,interactivebrokers.com.hk
 DOMAIN-SUFFIX,interactivebrokers.com.au
+DOMAIN-SUFFIX,interactivebrokers.com.sg
+DOMAIN-SUFFIX,interactivebrokers.eu
+DOMAIN-SUFFIX,interactivebrokers.hk
+DOMAIN-SUFFIX,interactivebrokers.hu
+DOMAIN-SUFFIX,interactivebrokers.ie
+DOMAIN-SUFFIX,interactivebrokers.lu
+
+# IBKR API / Client Portal / regional account sites
+DOMAIN-SUFFIX,ibkr.com
+DOMAIN-SUFFIX,ibkr.com.cn
+DOMAIN-SUFFIX,ibkr.com.sg
 DOMAIN-SUFFIX,clientam.com
+DOMAIN-SUFFIX,clientam.ch
 DOMAIN-SUFFIX,clientam.com.hk
+
+# TWS / IB Gateway / legacy company domains
 DOMAIN-SUFFIX,ibllc.com
+DOMAIN-SUFFIX,ibllc.com.cn
 DOMAIN-SUFFIX,ibgdr.com
 DOMAIN-SUFFIX,timberhill.com
 DOMAIN-SUFFIX,futuretrade.com
+
+# Official public content and related IBKR services
+DOMAIN-SUFFIX,ibkrcampus.com
+DOMAIN-SUFFIX,ibkrguides.com
+DOMAIN-SUFFIX,interactiveadvisors.com
+DOMAIN-SUFFIX,portfolioanalyst.com
+
+# Official IP ranges kept from the existing rule set
 IP-CIDR,63.86.206.0/24,no-resolve
 IP-CIDR,8.17.22.0/24,no-resolve
 IP-CIDR,206.106.137.0/24,no-resolve
@@ -27,3 +55,5 @@ IP-CIDR,64.190.196.0/24,no-resolve
 IP-CIDR,64.190.197.0/24,no-resolve
 IP-CIDR,209.127.240.0/24,no-resolve
 IP-CIDR,209.127.241.0/24,no-resolve
+
+# END
