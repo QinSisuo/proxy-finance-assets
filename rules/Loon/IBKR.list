@@ -1,9 +1,10 @@
 # NAME: IBKR
 # AUTHOR: qinsisuo
-# UPDATED: 2026-06-13 01:49:08 +0800
+# UPDATED: 2026-06-13 02:08:53 +0800
+# DOMAIN: 2
 # DOMAIN-SUFFIX: 29
 # IP-CIDR: 12
-# TOTAL: 41
+# TOTAL: 43
 
 # Official regional websites
 DOMAIN-SUFFIX,interactivebrokers.com
@@ -41,6 +42,10 @@ DOMAIN-SUFFIX,ibkrcampus.com
 DOMAIN-SUFFIX,ibkrguides.com
 DOMAIN-SUFFIX,interactiveadvisors.com
 DOMAIN-SUFFIX,portfolioanalyst.com
+
+# Exact third-party endpoints observed in the IBKR iOS app
+DOMAIN,staticx-tuner.zacks.com
+DOMAIN,widgets.tipranks.com
 
 # Official IP ranges kept from the existing rule set
 IP-CIDR,63.86.206.0/24,no-resolve
