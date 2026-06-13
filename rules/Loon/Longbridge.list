@@ -1,0 +1,26 @@
+# NAME: Longbridge
+# AUTHOR: qinsisuo
+# UPDATED: 2026-06-13 00:00:00 +0800
+# DOMAIN: 1
+# DOMAIN-SUFFIX: 11
+# TOTAL: 12
+
+# Longbridge app API, quote, trade, WebSocket, telemetry and CDN domains
+DOMAIN-SUFFIX,lbkrs.com
+DOMAIN-SUFFIX,lbctrl.com
+DOMAIN-SUFFIX,pbkrs.com
+DOMAIN-SUFFIX,wbrks.com
+
+# Longbridge public website, support, status and regional app domains
+DOMAIN-SUFFIX,longbridge.com
+DOMAIN-SUFFIX,longbridge.hk
+DOMAIN-SUFFIX,longbridge.global
+DOMAIN-SUFFIX,longbridgeapp.com
+DOMAIN-SUFFIX,longbridgehk.com
+DOMAIN-SUFFIX,longportapp.com
+DOMAIN-SUFFIX,longportapp.cn
+
+# Exact object storage endpoint observed in Longbridge geotest flow
+DOMAIN,prod-lb-geotest.oss-cn-shenzhen.aliyuncs.com
+
+# END
