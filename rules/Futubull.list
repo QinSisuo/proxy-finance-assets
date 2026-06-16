@@ -1,9 +1,9 @@
 # NAME: Futubull
 # AUTHOR: qinsisuo
-# UPDATED: 2026-06-05 20:34:35 +0800
+# UPDATED: 2026-06-17 00:06:50 +0800
 # DOMAIN-SUFFIX: 16
-# IP-CIDR: 22
-# TOTAL: 38
+# IP-CIDR: 27
+# TOTAL: 43
 
 # Futu / Futubull core
 DOMAIN-SUFFIX,futunn.com
@@ -34,14 +34,19 @@ IP-CIDR,1.14.242.49/32,no-resolve
 IP-CIDR,43.132.106.6/32,no-resolve
 IP-CIDR,43.142.232.62/32,no-resolve
 IP-CIDR,43.153.191.154/32,no-resolve
+IP-CIDR,43.153.233.181/32,no-resolve
+IP-CIDR,43.162.221.26/32,no-resolve
 IP-CIDR,49.51.78.222/32,no-resolve
 IP-CIDR,49.234.241.65/32,no-resolve
 IP-CIDR,49.234.241.94/32,no-resolve
+IP-CIDR,101.32.65.244/32,no-resolve
+IP-CIDR,101.32.198.103/32,no-resolve
 IP-CIDR,111.230.125.153/32,no-resolve
 IP-CIDR,115.159.18.59/32,no-resolve
 IP-CIDR,118.89.98.77/32,no-resolve
 IP-CIDR,119.28.37.77/32,no-resolve
 IP-CIDR,119.28.37.206/32,no-resolve
+IP-CIDR,119.28.141.196/32,no-resolve
 IP-CIDR,119.28.218.227/32,no-resolve
 IP-CIDR,119.91.245.125/32,no-resolve
 IP-CIDR,119.91.245.213/32,no-resolve
