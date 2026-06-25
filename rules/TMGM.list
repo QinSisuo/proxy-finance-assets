@@ -1,20 +1,33 @@
 # NAME: TMGM
 # AUTHOR: qinsisuo
-# UPDATED: 2026-04-21 00:31:21 +0800
-# DOMAIN: 7
-# DOMAIN-SUFFIX: 19
-# TOTAL: 26
+# UPDATED: 2026-06-25 08:23:07 +0800
+# DOMAIN: 10
+# DOMAIN-SUFFIX: 26
+# TOTAL: 36
 
 # —— 官方主域 / Portal —— 
 DOMAIN-SUFFIX,tmgmplatform.com
 DOMAIN-SUFFIX,tmgm.com
+DOMAIN-SUFFIX,tmgm.com.au
 DOMAIN-SUFFIX,tmgmasia.com
 DOMAIN-SUFFIX,tmgmg.com
+DOMAIN-SUFFIX,tmgm-market.com
+DOMAIN-SUFFIX,tmgmpartners.com
+DOMAIN-SUFFIX,tmgmprogo.com
+DOMAIN-SUFFIX,tmgm-sea.com
 DOMAIN,portal.cninvpro.com
+
+# —— 官方资源 / API ——
+DOMAIN-SUFFIX,tmgm-cdn2.com
+DOMAIN,apitmgm.meydou.top
 DOMAIN,tmgm-cdn.oss-cn-hongkong.aliyuncs.com
+DOMAIN,tmgm-static.oss-cn-hongkong.aliyuncs.com
 DOMAIN,tmgm-prod-resources.s3.ap-east-1.amazonaws.com
 DOMAIN,tmgm.zendesk.com
 DOMAIN,store.tm-fxzho.com
+
+# —— 实时行情 ——
+DOMAIN,quotes.tmx-api.com
 
 # —— App 核心 H5 / API / 资源 —— 
 DOMAIN-SUFFIX,tasquidverse.com
@@ -32,6 +45,7 @@ DOMAIN-SUFFIX,prismalytic.com
 DOMAIN-SUFFIX,nanobytecloud.com
 DOMAIN-SUFFIX,ultradynatech.com
 DOMAIN-SUFFIX,cyberfluxium.com
+DOMAIN-SUFFIX,inveshubment.com
 DOMAIN,app-analytics-services.com
 DOMAIN,app-static.talesofeternity.com
 
