@@ -1,9 +1,10 @@
 # NAME: TMGM
 # AUTHOR: qinsisuo
-# UPDATED: 2026-06-25 08:23:07 +0800
-# DOMAIN: 10
-# DOMAIN-SUFFIX: 26
-# TOTAL: 36
+# UPDATED: 2026-06-25 20:05:21 +0800
+# DOMAIN: 11
+# DOMAIN-SUFFIX: 27
+# IP-CIDR: 1
+# TOTAL: 39
 
 # —— 官方主域 / Portal —— 
 DOMAIN-SUFFIX,tmgmplatform.com
@@ -18,13 +19,18 @@ DOMAIN-SUFFIX,tmgm-sea.com
 DOMAIN,portal.cninvpro.com
 
 # —— 官方资源 / API ——
+DOMAIN-SUFFIX,aliyunddos0017.com
 DOMAIN-SUFFIX,tmgm-cdn2.com
 DOMAIN,apitmgm.meydou.top
+DOMAIN,w446wn54h85s27b6.aliyunddos0017.com
 DOMAIN,tmgm-cdn.oss-cn-hongkong.aliyuncs.com
 DOMAIN,tmgm-static.oss-cn-hongkong.aliyuncs.com
 DOMAIN,tmgm-prod-resources.s3.ap-east-1.amazonaws.com
 DOMAIN,tmgm.zendesk.com
 DOMAIN,store.tm-fxzho.com
+
+# —— 官方站点 IP 兜底 ——
+IP-CIDR,170.33.8.140/32,no-resolve
 
 # —— 实时行情 ——
 DOMAIN,quotes.tmx-api.com
