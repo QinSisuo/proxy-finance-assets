@@ -1,0 +1,32 @@
+# NAME: FastBull
+# AUTHOR: qinsisuo
+# RAW: https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/rules/FastBull.list
+# UPDATED: 2026-08-27 23:34:04 +0800
+# DOMAIN: 12
+# DOMAIN-SUFFIX: 3
+# TOTAL: 15
+
+# FastBull official web, app, API, market data, WebSocket and static assets
+DOMAIN-SUFFIX,fastbull.com
+DOMAIN-SUFFIX,fastbull.cn
+
+# BrokersView officially merged into FastBull in 2025
+DOMAIN-SUFFIX,brokersview.com
+
+# FastBull chat, verification, contest, upload and telemetry endpoints
+DOMAIN,img.forexchat.com
+DOMAIN,im-ws.toant.top
+DOMAIN,slider-h5.toant.top
+DOMAIN,trading-contest-api.toant.top
+DOMAIN,promotionapi.toant.top
+DOMAIN,universal-logs-collect.toant.top
+DOMAIN,upload.fx580.me
+
+# BeeMarkets endpoints integrated by the official FastBull frontend
+DOMAIN,beemarkets.com
+DOMAIN,www.beemarkets.com
+DOMAIN,api.beemarkets.com
+DOMAIN,official-data-api.beemarkets.com
+DOMAIN,ws-push.beemarkets.com
+
+# END
