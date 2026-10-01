@@ -1,0 +1,19 @@
+# NAME: Claude
+# AUTHOR: qinsisuo
+# RAW: https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/rules/Claude.list
+# UPDATED: 2026-10-02 00:34:32 +0800
+# SOURCE: https://kelee.one/Tool/Loon/Lsr/AI.lsr
+# SOURCE-UPDATED: 2026-09-30 15:40:36
+# SOURCE-SECTION: Anthropic
+# NOTE: Extracted routing rules; not an AI availability or unlock test.
+# DOMAIN-SUFFIX: 3
+# IP-CIDR: 1
+# IP-CIDR6: 1
+# TOTAL: 5
+
+# Anthropic
+DOMAIN-SUFFIX, anthropic.com
+DOMAIN-SUFFIX, claude.ai
+DOMAIN-SUFFIX, claudeusercontent.com
+IP-CIDR, 160.79.104.0/23, no-resolve
+IP-CIDR6, 2607:6bc0::/48, no-resolve

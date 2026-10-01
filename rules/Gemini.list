@@ -1,0 +1,36 @@
+# NAME: Gemini
+# AUTHOR: qinsisuo
+# RAW: https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/rules/Gemini.list
+# UPDATED: 2026-10-02 00:34:32 +0800
+# SOURCE: https://kelee.one/Tool/Loon/Lsr/AI.lsr
+# SOURCE-UPDATED: 2026-09-30 15:40:36
+# SOURCE-SECTION: Gemini
+# NOTE: Extracted routing rules; not an AI availability or unlock test.
+# DOMAIN: 24
+# TOTAL: 24
+
+# Gemini
+DOMAIN, ai.google.dev
+DOMAIN, aida.googleapis.com
+DOMAIN, aicode.googleapis.com
+DOMAIN, aistudio.google.com
+DOMAIN, alkalicore-pa.clients6.google.com
+DOMAIN, alkalimakersuite-pa.clients6.google.com
+DOMAIN, bard.google.com
+DOMAIN, deepmind.com
+DOMAIN, deepmind.google
+DOMAIN, geller-pa.googleapis.com
+DOMAIN, gemini.google
+DOMAIN, gemini.google.com
+DOMAIN, generativeai.google
+DOMAIN, generativelanguage.googleapis.com
+DOMAIN, makersuite.google.com
+DOMAIN, proactivebackend-pa.googleapis.com
+DOMAIN, robinfrontend-pa.googleapis.com
+DOMAIN, webchannel-alkalimakersuite-pa.clients6.google.com
+DOMAIN, notebooklm.google
+DOMAIN, notebooklm.google.com
+DOMAIN, jules.google
+DOMAIN, jules.google.com
+DOMAIN, labs.google
+DOMAIN, aisandbox-pa.googleapis.com

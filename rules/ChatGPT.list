@@ -1,0 +1,32 @@
+# NAME: ChatGPT
+# AUTHOR: qinsisuo
+# RAW: https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/rules/ChatGPT.list
+# UPDATED: 2026-10-02 00:34:32 +0800
+# SOURCE: https://kelee.one/Tool/Loon/Lsr/AI.lsr
+# SOURCE-UPDATED: 2026-09-30 15:40:36
+# SOURCE-SECTION: OpenAI
+# NOTE: Extracted routing rules; not an AI availability or unlock test.
+# AND: 2
+# DOMAIN: 8
+# DOMAIN-SUFFIX: 8
+# TOTAL: 18
+
+# OpenAI
+AND, ((DOMAIN-KEYWORD, chatgpt-async-webps-prod-), (DOMAIN-SUFFIX, webpubsub.azure.com))
+AND, ((DOMAIN-KEYWORD, openaicom-api-), (DOMAIN-SUFFIX, azurefd.net))
+DOMAIN, chatgpt.livekit.cloud
+DOMAIN, host.livekit.cloud
+DOMAIN, openai.com.cdn.cloudflare.net
+DOMAIN, openaiapi-site.azureedge.net
+DOMAIN, openaicomproductionae4b.blob.core.windows.net
+DOMAIN, production-openaicom-storage.azureedge.net
+DOMAIN, turn.livekit.cloud
+DOMAIN, openaicom.imgix.net
+DOMAIN-SUFFIX, chat.com
+DOMAIN-SUFFIX, chatgpt.com
+DOMAIN-SUFFIX, crixet.com
+DOMAIN-SUFFIX, oaistatic.com
+DOMAIN-SUFFIX, oaiusercontent.com
+DOMAIN-SUFFIX, openai.com
+DOMAIN-SUFFIX, sora.com
+DOMAIN-SUFFIX, chatgpt.site
