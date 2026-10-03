@@ -66,15 +66,15 @@
     }
     if (status >= 200 && status < 300) {
       // Inspect actual visible error headings, never preloaded translations in scripts.
+      var markup = body.replace(/<!--[\s\S]*?-->|<script\b[^>]*>[\s\S]*?<\/script\s*>|<style\b[^>]*>[\s\S]*?<\/style\s*>|<template\b[^>]*>[\s\S]*?<\/template\s*>/gi, "");
       var heading, headingPattern = /<h[12]\b[^>]*>([\s\S]*?)<\/h[12]>/gi;
-      while ((heading = headingPattern.exec(body))) {
-        if (/<script\b/i.test(heading[1])) continue;
+      while ((heading = headingPattern.exec(markup))) {
         var visible = heading[1].replace(/<[^>]*>/g, " ").replace(/&#39;|&apos;/g, "'").replace(/&rsquo;/g, "’").replace(/\s+/g, " ").trim();
         if (/^(?:Gemini|Claude) (?:is not|isn't|isn’t) (?:currently )?available in (?:your|this) (?:country|region)(?: yet)?[.!]?$/i.test(visible)) {
           return result("region", "页面提示地区限制", visible);
         }
       }
-      var title = (body.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "";
+      var title = (markup.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "";
       var expected = service === "ChatGPT" ? /ChatGPT/i : service === "Claude" ? /Claude/i : /Gemini/i;
       if (expected.test(title)) {
         var detail = "识别到服务页面标题；账号与对话功能仍需验证";

@@ -24,6 +24,9 @@ test('Gemini status 200, country marker and old feature flag do not prove availa
   assert.equal(checker.classify('Gemini', probe, {status:200, body:'<html>unrelated</html>'}).kind, 'unknown');
   assert.equal(checker.classify('Gemini', probe, {status:200, body:'<title>Gemini</title><h1>Gemini isn’t available in your country yet</h1>'}).kind, 'region');
   assert.equal(checker.classify('Gemini', probe, {status:200, body:'<title>Gemini</title><script>"Gemini isn’t available in your country yet"</script>'}).kind, 'page');
+  for (const hidden of ['<script>var t="<h1>Gemini is not available in your country</h1>";</script>', '<!-- <h1>Gemini is not available in your country</h1> -->', '<template><h1>Gemini is not available in your country</h1></template>']) {
+    assert.equal(checker.classify('Gemini', probe, {status:200, body:'<title>Gemini</title>'+hidden}).kind, 'page');
+  }
   const ambiguous = checker.classify('Gemini', probe, {status:200, body:'<title>Gemini</title>,2,1,200,"USA" ,2,1,200,"CHN"'});
   assert.match(ambiguous.detail, /地区未知/);
 });
