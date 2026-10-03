@@ -6,14 +6,14 @@
 
 ### 浏览器诊断页
 
-为 Mac 提供无需 Generic 菜单的浏览器入口 `http://loon-ai.test/`：
+为 Mac 实现无需 Generic 菜单的浏览器入口 `http://loon-ai.test/`。本地逻辑检查通过，Mac 浏览器打开尚待解锁后实测，当前不能作为已验收入口：
 
 - 首页：展示配置的比较节点，不发起检测。
 - 「同节点对比」：每个指定节点访问三个服务，返回对照表和分项详情。
 - 「当前策略组」：分别检测原有三个服务组的当前选择。
 - 「最近记录」：只读取本机最近 10 次结果。
 
-此地址由 Loon 的 Request Script 直接生成响应，不安装或监听本地 HTTP 服务器。需要 Loon 正在处理浏览器流量。只匹配精确的 HTTP 域名；配置增加 `loon-ai.test = 127.0.0.1` 的 Host 映射及一条该域名 DIRECT 规则。HTTP 入口不需 MitM，AI 服务检测仍使用 HTTPS 并校验证书。结果页禁止缓存和外部资源加载。
+此地址由 Loon 的 Request Script 直接生成响应，不安装或监听本地 HTTP 服务器。需要 Loon 正在处理浏览器流量。只匹配精确的 HTTP 域名；配置增加 `loon-ai.test = 192.0.2.1` 的 Host 映射及一条该域名 DIRECT 规则。HTTP 入口不需 MitM，AI 服务检测仍使用 HTTPS 并校验证书。结果页禁止缓存和外部资源加载。
 
 安装时将一项 Request Script 放入 `[Script]`：
 
@@ -67,7 +67,7 @@ service=history
 - 遇到验证挑战：服务要求额外验证，脚本无法确认 App 是否也被拦。
 - 访问被拒绝：HTTP 403/451，但原因未确定。`type=dc` 只原样解释为响应类型，不武断归因于节点类型。
 - 收到服务网页：收到带对应服务标题的网页，**不是已经验证账号或聊天**。
-- 超时、DNS、TLS、限流分别显示，不混同地区限制。
+- 超时、DNS、TLS、限流分别显示，不混同地区限制。Apple URL 错误中的响应解码/解析失败单独显示；未知错误不假定为网络故障。错误说明保留有限摘要，移除 UserInfo 和嵌入网址，不存储原始错误对象。
 - Gemini 页面地区字段是非公开结构，可能改变；多个冲突值或缺失显示未知，不按地区码自动判定可用。脚本不使用过时的 `45631641` 功能开关作为解锁结论。
 
 ## Test-URL 调整
@@ -78,6 +78,7 @@ ChatGPT 和 Claude 没有找到能可靠判定服务可用性的单个 HTTP 端�
 
 ## 依据
 
+- [Apple URL 响应解析错误](https://developer.apple.com/documentation/foundation/nsurlerrorcannotparseresponse-c.enum.case)：同时核对本机 SDK `NSURLError.h` 的错误码；解析失败与连接中断分开处理。
 - [Loon Script API](https://nsloon.app/docs/Script/script_api/)：节点上下文、指定 node 的请求、毫秒超时和结果。
 - [Loon Generic 示例](https://raw.githubusercontent.com/Loon0x00/LoonExampleConfig/master/Script/generic_example.js)：节点名称及 HTML 结果。
 - [Cloudflare 官方挑战页标识](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/detect-response/)：`cf-mitigated: challenge`。
@@ -90,4 +91,4 @@ ChatGPT 和 Claude 没有找到能可靠判定服务可用性的单个 HTTP 端�
 
 `node --test tests/ai-service-check.test.cjs` 验证分类、节点固定、跨节点对比、Cookie/证书选项、重试条件与预算、重定向、历史记录、HTML 转义和单次结果回调。实际服务结果仍取决于运行时所选节点；手机端加载和报错复现需另外核实。
 
-2026-10-03：新版 21 项测试通过。以下为升级前的实测记录：Mac Loon 0.4.0(991) 已通过临时单次触发验证 HTTPS 源码加载及四个实际请求；隧道日志确认请求按指定节点/策略组选择转发，脚本正常结束。临时触发配置已清理。此验证确认脚本引擎执行，不代表已验证 Mac Generic 手动菜单或 iPhone 菜单，也不代表各 AI 已能登录、聊天。
+2026-10-03：新版 22 项测试通过。以下为升级前的实测记录：Mac Loon 0.4.0(991) 已通过临时单次触发验证 HTTPS 源码加载及四个实际请求；隧道日志确认请求按指定节点/策略组选择转发，脚本正常结束。临时触发配置已清理。此验证确认脚本引擎执行，不代表已验证 Mac Generic 手动菜单或 iPhone 菜单，也不代表各 AI 已能登录、聊天。

@@ -223,3 +223,17 @@ test('other hosts, unknown pages and unsupported methods never trigger probes',a
     assert.equal(results[0].response?.status,status);
   }
 });
+
+test('structured Apple URL errors retain reasons and distinguish decoding from connectivity',async()=>{
+  const code=-1016;
+  const r=checker.classify('Claude',probe,{error:{domain:'NSURLErrorDomain',code,message:'无法解码响应'}});
+  assert.equal(r.kind,'decode');
+  const {calls,results}=await runLoon({params:{node:'fixed'}},()=>({error:'Error Domain=NSURLErrorDomain Code=-1016 "cannot decode content" UserInfo={private}'}),undefined,{$argument:'service=Claude'});
+  assert.equal(calls.length,1);
+  assert.match(results[0].content,/响应解析失败/);
+  assert.ok(!results[0].content.includes('private'));
+  const retry=await runLoon({params:{node:'fixed'}},()=>({error:{domain:'NSURLErrorDomain',code:-1005,message:'连接中断'}}),undefined,{$argument:'service=Claude'});
+  assert.equal(retry.calls.length,2);
+  assert.match(retry.results[0].content,/连接中断/);
+  assert.equal(checker.classify('Claude',probe,{error:{message:'unrecognized failure',code:-1016,domain:'Other'}}).kind,'unknown');
+});

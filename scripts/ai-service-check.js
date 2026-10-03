@@ -40,13 +40,24 @@
     return /^https:\/\/(?:www\.)?(?:anthropic\.com|claude\.com)\/app-unavailable-in-region(?:[/?#]|$)/i.test(url);
   }
   function result(kind, label, detail) { return { kind: kind, label: label, detail: detail || "" }; }
+  function errorInfo(error) {
+    var text = typeof error === "string" ? error : error && (error.message || error.localizedDescription || error.description) || "未提供错误说明";
+    var domain = error && typeof error === "object" ? String(error.domain || "") : (String(text).match(/Domain=(NSURLErrorDomain)\b/) || [])[1] || "";
+    var code = error && typeof error === "object" ? Number(error.code) : Number((String(text).match(/\bCode=(-?\d+)/) || [])[1]);
+    text = String(text).split(/UserInfo\s*=/)[0].replace(/https?:\/\/[^\s"<>]+/gi, "[请求网址]").replace(/\s+/g, " ").slice(0, 300);
+    if (typeof error === "object" && domain && Number.isFinite(code)) text = domain + " Code=" + code + " " + text;
+    return { text: text, domain: domain, code: code };
+  }
   function classify(service, probe, response) {
     if (response.error) {
-      var error = String(response.error);
-      if (/timed?\s*out|timeout|超时/i.test(error)) return result("timeout", "请求超时", "本次未得到响应，不能据此判断地区限制");
-      if (/certificate|\bTLS\b|\bSSL\b|证书/i.test(error)) return result("network", "TLS 或证书错误", "该请求未通过安全连接检查，不能据此判断地区限制");
-      if (/\bDNS\b|resolve|nodename|找不到主机/i.test(error)) return result("network", "域名解析失败", "检查该节点的域名解析，不能据此判断地区限制");
-      return result("network", "连接失败", "该节点未完成请求，不能据此判断地区限制");
+      var info = errorInfo(response.error), error = info.text, code = info.domain === "NSURLErrorDomain" ? info.code : null;
+      var evidence = "；底层错误：" + error;
+      if (code === -1001 || /timed?\s*out|timeout|超时/i.test(error)) return result("timeout", "请求超时", "本次未得到响应，不能据此判断地区限制" + evidence);
+      if (code <= -1200 && code >= -1206 || /certificate|\bTLS\b|\bSSL\b|证书/i.test(error)) return result("network", "TLS 或证书错误", "该请求未通过安全连接检查，不能据此判断地区限制" + evidence);
+      if (code === -1003 || code === -1006 || /\bDNS\b|resolve|nodename|找不到主机/i.test(error)) return result("network", "域名解析失败", "检查该节点的域名解析，不能据此判断地区限制" + evidence);
+      if (code === -1015 || code === -1016 || code === -1017 || /decode|encoding|parse response|数据.*格式|解码/i.test(error)) return result("decode", "响应解析失败", "运行时未能解析响应，不能据此判断服务或地区不可用" + evidence);
+      if (code === -1004 || code === -1005 || code === -1009 || /connection|connect|network|reset|refused|unreachable|连接|网络/i.test(error)) return result("network", "连接失败", "该节点未完成请求，不能据此判断地区限制" + evidence);
+      return result("unknown", "请求失败，原因待确认", "未识别底层错误类型，不能据此判断服务或地区不可用" + evidence);
     }
     var status = Number(response.status), h = headersLower(response.headers);
     var body = typeof response.body === "string" ? response.body : "";
@@ -165,8 +176,8 @@
   }
   function retryable(response) {
     if (!response.error) return false;
-    return /timed?\s*out|timeout|超时|connection|connect|network|reset|refused|unreachable|连接|网络/i.test(String(response.error)) &&
-      !/certificate|\bTLS\b|\bSSL\b|\bDNS\b|resolve|nodename|证书|解析/i.test(String(response.error));
+    var verdict = classify("", {}, response);
+    return verdict.kind === "timeout" || verdict.kind === "network" && verdict.label === "连接失败";
   }
   function request(probe, node, service, label, options) {
     options = options || { timeout: 12, retry: 1 };
@@ -187,6 +198,7 @@
           attempt.elapsed = Date.now() - attemptStarted;
           attempt.status = Number(value.status) || 0;
           attempt.kind = verdict.kind; attempt.label = verdict.label;
+          if (value.error) attempt.error = errorInfo(value.error).text;
           resolve(value);
         }
         // Loon has no reliable clearTimeout; settled also ignores late callbacks.
@@ -278,6 +290,7 @@
       html += escapeHTML(r.url || "");
       (r.attempts || []).forEach(function (a, i) {
         html += '<br>请求 ' + (i + 1) + '：' + escapeHTML(a.label) + (a.status ? ' / HTTP ' + escapeHTML(a.status) : '') + ' / ' + escapeHTML(a.elapsed) + ' ms';
+        if (a.error) html += ' / ' + escapeHTML(a.error);
       });
       html += '</small></div>';
     });
