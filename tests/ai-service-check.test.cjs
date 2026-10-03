@@ -95,3 +95,131 @@ test('implicit defaults may use only verified groups and are labelled as groups'
   assert.match(results[0].content,/策略组 Gemini（当前选择由 Loon 解析）/);
   assert.match(results[0].content,/HTTP 403/);
 });
+
+test('fixed nodes compare all services on each node without changing policies', async()=>{
+  const nodes=['US 106 & test','US 101'];
+  const {calls,results}=await runLoon(null,()=>({status:200,body:'<title>Gemini</title>'}),undefined,{
+    $argument:'service=all&nodes='+encodeURIComponent(JSON.stringify(nodes))
+  });
+  assert.deepEqual(calls.map(o=>o.node),[...Array(4).fill(nodes[0]),...Array(4).fill(nodes[1])]);
+  assert.ok(calls.every(o=>o.timeout===12000));
+  assert.equal(results.length,1);
+  assert.match(results[0].htmlMessage,/固定节点对比/);
+  assert.match(results[0].htmlMessage,/US 106 &amp; test/);
+});
+
+test('a comparison cannot claim a fixed node when only a group is resolved', async()=>{
+  const {calls,results}=await runLoon(null,()=>({status:200}),undefined,{
+    $argument:'service=all&node=ChatGPT',
+    $config:{getSelectedPolicy:()=>'',getConfig:()=>JSON.stringify({all_policy_groups:['ChatGPT']})}
+  });
+  assert.equal(calls.length,0);
+  assert.match(results[0].content,/未解析到具体节点/);
+});
+
+test('one transient retry records the first failure and retains the same node', async()=>{
+  const {calls,results}=await runLoon({params:{node:'fixed'}},(_,n)=>n===1?{error:'connection reset'}:{status:200,body:'<title>Claude</title>'},undefined,{
+    $argument:'service=Claude&timeout=10'
+  });
+  assert.equal(calls.length,2);
+  assert.ok(calls.every(o=>o.node==='fixed' && o.timeout===10000));
+  assert.match(results[0].content,/重试后收到响应/);
+  assert.match(results[0].content,/请求1=连接失败/);
+});
+
+test('denials, limits, TLS and DNS errors are not retried; retries can be disabled', async()=>{
+  for (const r of [{status:403},{status:429},{error:'DNS resolve failed'},{error:'SSL certificate invalid'}]) {
+    const {calls}=await runLoon({params:{node:'fixed'}},()=>r,undefined,{$argument:'service=Claude'});
+    assert.equal(calls.length,1);
+  }
+  const {calls}=await runLoon({params:{node:'fixed'}},()=>({error:'timeout'}),undefined,{$argument:'service=Claude&retry=0'});
+  assert.equal(calls.length,1);
+});
+
+test('retry and redirects share a 28-second budget, and late callbacks cannot finish twice', async()=>{
+  let now=0, timers=[], done=[], calls=[];
+  class FakeDate extends Date { static now(){return now;} }
+  const context={Date:FakeDate,$argument:'service=Claude&node=fixed',
+    $httpClient:{get(o,cb){calls.push(o);if(calls.length===1){now=12000;cb('timeout');}else{now=24000;cb(null,{status:302,headers:{location:'login'}},'');}}},
+    $done:r=>done.push(r),console:{log(){}},setTimeout(fn){timers.push(fn);}
+  };
+  vm.runInNewContext(source,context);
+  for(let i=0;i<40;i++)await Promise.resolve();
+  assert.deepEqual(calls.map(o=>o.timeout),[12000,12000,4000]);
+  assert.equal(done.length,1);
+  timers.forEach(fn=>fn());
+  for(let i=0;i<10;i++)await Promise.resolve();
+  assert.equal(done.length,1);
+});
+
+test('history is bounded, stores only summaries and never issues HTTP on viewing', async()=>{
+  let saved='[]';
+  const store={read:()=>saved,write:(value,key)=>{assert.equal(key,'ai-service-check.history.v2');saved=value;return true;}};
+  for(let i=0;i<12;i++) checker.saveReport({time:String(i),rows:[]},store);
+  assert.equal(checker.readHistory(store).length,10);
+  assert.equal(checker.readHistory(store)[0].time,'2');
+  const {calls,results}=await runLoon(null,()=>{throw new Error('must not request');},undefined,{
+    $argument:'service=history',$persistentStore:store
+  });
+  assert.equal(calls.length,0);
+  assert.match(results[0].content,/10 次/);
+  await runLoon({params:{node:'fixed'}},()=>({status:403,body:'private-response-body'}),undefined,{
+    $argument:'service=Claude',$persistentStore:store
+  });
+  assert.ok(!saved.includes('private-response-body'));
+  assert.match(saved,/fixed/);
+});
+
+test('relative redirects resolve on the same host; HTTP and other schemes stay unfetched',()=>{
+  assert.equal(checker.resolveLocation('https://claude.ai/a/b','../login?x=1'),'https://claude.ai/login?x=1');
+  assert.equal(checker.resolveLocation('https://claude.ai/app?x=1','?x=2'),'https://claude.ai/app?x=2');
+  assert.equal(checker.resolveLocation('https://claude.ai/','http://claude.ai/login'),'');
+  assert.equal(checker.resolveLocation('https://claude.ai/','javascript:alert(1)'),'');
+});
+
+test('invalid arguments are rejected before requests',()=>{
+  for(const argument of ['timeout=0','timeout=abc','retry=2','service=Unknown','nodes=%5B%22%22%5D','nodes=not-json']) {
+    assert.throws(()=>checker.parseOptions(argument));
+  }
+  assert.deepEqual(checker.parseOptions({service:'Claude',timeout:15,retry:0}).nodes,[]);
+});
+
+test('browser home and history return local HTML without outbound probes',async()=>{
+  for (const path of ['/','/history']) {
+    const {calls,results}=await runLoon(null,()=>{throw new Error('must not request');},undefined,{
+      $argument:'service=all&node=fixed',$request:{url:'http://loon-ai.test'+path,method:'GET'}
+    });
+    assert.equal(calls.length,0);
+    assert.equal(results.length,1);
+    assert.equal(results[0].response.status,200);
+    assert.match(results[0].response.body,/同节点对比/);
+    assert.equal(results[0].response.headers['Cache-Control'],'no-store');
+  }
+});
+
+test('browser comparison uses configured nodes, ignoring node names in the URL',async()=>{
+  const {calls,results}=await runLoon(null,()=>({status:403}),undefined,{
+    $argument:'service=all&node=fixed',
+    $request:{url:'http://loon-ai.test/compare?node=other',method:'GET'}
+  });
+  assert.equal(calls.length,4);
+  assert.ok(calls.every(o=>o.node==='fixed'));
+  assert.equal(results[0].response.status,200);
+  assert.match(results[0].response.body,/访问被拒绝/);
+});
+
+test('other hosts, unknown pages and unsupported methods never trigger probes',async()=>{
+  for (const [url,method,status] of [
+    ['http://loon-ai.test.evil.test/compare','GET',undefined],
+    ['https://loon-ai.test/compare','GET',undefined],
+    ['http://loon-ai.test/unknown','GET',404],
+    ['http://loon-ai.test/compare','POST',405]
+  ]) {
+    const {calls,results}=await runLoon(null,()=>{throw new Error('must not request');},undefined,{
+      $request:{url,method}
+    });
+    assert.equal(calls.length,0);
+    assert.equal(results.length,1);
+    assert.equal(results[0].response?.status,status);
+  }
+});
