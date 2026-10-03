@@ -8,7 +8,7 @@
 
 也提供 ChatGPT、Claude、Gemini 三个单独诊断项。若从脚本列表直接执行且没有节点上下文，则分别读取同名策略组当前选中的节点；Loon 未返回默认节点时，先确认该组确实存在，再让 Loon 使用该组的当前选择，并明确标注“策略组”。组不存在或无法核实则停止，不默默改走默认路由。
 
-脚本源文件为本仓库 `scripts/ai-service-check.js`，部署版本为 [`d29c75e`](https://github.com/QinSisuo/proxy-finance-assets/commit/d29c75ed15cd7fccdbce8f83428a15671bfbb760)。部署使用 GitHub 固定提交的 HTTPS 原始文件地址，避免 Mac 与 iPhone 本地文件路径差异；iCloud Scripts 中保留一份源码副本。已观察到 Mac 0.4.0(991) 的本地路径验收未产生启动日志，因此不能仅凭资源出现在列表中判定加载成功。
+脚本源文件为本仓库 `scripts/ai-service-check.js`，部署版本为 [`66a64e4`](https://github.com/QinSisuo/proxy-finance-assets/commit/66a64e4502688602a44a34db05888245d4be26c1)。部署使用 GitHub 固定提交的 HTTPS 原始文件地址，避免 Mac 与 iPhone 本地文件路径差异；iCloud Scripts 中保留一份源码副本。已观察到 Mac 0.4.0(991) 的本地路径验收未产生启动日志，因此不能仅凭资源出现在列表中判定加载成功。
 
 ## 具体请求
 
@@ -50,3 +50,5 @@ ChatGPT 和 Claude 没有找到能可靠判定服务可用性的单个 HTTP 端�
 ## 本地检查
 
 `node --test tests/ai-service-check.test.cjs` 验证分类、节点固定、Cookie/证书选项、重定向、HTML 转义和单次结果回调。实际服务结果仍取决于运行时所选节点；手机端加载和报错复现需另外核实。
+
+2026-10-03：10 项测试通过。Mac Loon 0.4.0(991) 已通过临时单次触发验证 HTTPS 源码加载及四个实际请求；隧道日志确认请求按指定节点/策略组选择转发，脚本正常结束。临时触发配置已清理。此验证确认脚本引擎执行，不代表已验证 Mac Generic 手动菜单或 iPhone 菜单，也不代表各 AI 已能登录、聊天。
