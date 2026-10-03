@@ -86,3 +86,12 @@ test('null environment and a CommonJS shim cannot silently skip Loon execution',
   assert.deepEqual(calls.map(o=>o.node),['A','A','B','C']);
   assert.equal(results.length,1);
 });
+test('implicit defaults may use only verified groups and are labelled as groups', async()=>{
+  const config = {getSelectedPolicy:()=>'',getConfig:()=>JSON.stringify({all_policy_groups:['ChatGPT','Claude','Gemini']})};
+  assert.equal(checker.selectedNode({},'Gemini',config),'Gemini');
+  assert.throws(()=>checker.selectedNode({},'Missing',config));
+  const {calls,results}=await runLoon(null,()=>({status:403}),undefined,{$config:config});
+  assert.deepEqual(calls.map(o=>o.node),['ChatGPT','ChatGPT','Claude','Gemini']);
+  assert.match(results[0].content,/策略组 Gemini（当前选择由 Loon 解析）/);
+  assert.match(results[0].content,/HTTP 403/);
+});

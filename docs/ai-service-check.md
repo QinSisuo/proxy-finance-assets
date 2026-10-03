@@ -6,9 +6,9 @@
 
 在支持 Generic 节点菜单的 Loon 版本中，在节点列表长按节点，选择「AI 三服务诊断」。全部请求使用该节点，不改变任何策略组的选择。iPhone 的实际显示待核实；Mac 0.4.0(991) 已识别这四项，但未找到可确认的手动执行入口，不能把右键菜单作为已验证操作。
 
-也提供 ChatGPT、Claude、Gemini 三个单独诊断项。若从脚本列表直接执行且没有节点上下文，则分别读取同名策略组当前选中的节点；读取失败时停止，不默默改走默认路由。
+也提供 ChatGPT、Claude、Gemini 三个单独诊断项。若从脚本列表直接执行且没有节点上下文，则分别读取同名策略组当前选中的节点；Loon 未返回默认节点时，先确认该组确实存在，再让 Loon 使用该组的当前选择，并明确标注“策略组”。组不存在或无法核实则停止，不默默改走默认路由。
 
-脚本源文件为本仓库 `scripts/ai-service-check.js`。部署使用 GitHub 固定提交的 HTTPS 原始文件地址，避免 Mac 与 iPhone 本地文件路径差异；iCloud Scripts 中保留一份源码副本。已观察到 Mac 0.4.0(991) 的本地路径验收未产生启动日志，因此不能仅凭资源出现在列表中判定加载成功。
+脚本源文件为本仓库 `scripts/ai-service-check.js`，部署版本为 [`d29c75e`](https://github.com/QinSisuo/proxy-finance-assets/commit/d29c75ed15cd7fccdbce8f83428a15671bfbb760)。部署使用 GitHub 固定提交的 HTTPS 原始文件地址，避免 Mac 与 iPhone 本地文件路径差异；iCloud Scripts 中保留一份源码副本。已观察到 Mac 0.4.0(991) 的本地路径验收未产生启动日志，因此不能仅凭资源出现在列表中判定加载成功。
 
 ## 具体请求
 

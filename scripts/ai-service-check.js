@@ -95,11 +95,21 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
+  function configuredGroups(config) {
+    try {
+      if (!config || typeof config.getConfig !== "function") return [];
+      var summary = config.getConfig();
+      if (typeof summary === "string") summary = JSON.parse(summary);
+      var groups = summary && summary.all_policy_groups;
+      return Array.isArray(groups) ? groups.filter(function (name) { return typeof name === "string"; }) : [];
+    } catch (_) { return []; }
+  }
   function selectedNode(params, service, config) {
     var explicit = params.nodeInfo && params.nodeInfo.name || params.node;
     var name = explicit || params.policyGroup || service;
     if (typeof name !== "string" || !name) throw new Error("没有可测试的节点或策略组");
-    if (!explicit && (!config || typeof config.getSelectedPolicy !== "function")) throw new Error("无法读取策略组所选节点；请长按具体节点运行");
+    var groups = configuredGroups(config);
+    if (!explicit && (!config || typeof config.getSelectedPolicy !== "function") && groups.indexOf(name) < 0) throw new Error("无法读取策略组所选节点；请长按具体节点运行");
     // Snapshot a selected child so all requests use the same node during this run.
     var seen = {};
     for (var i = 0; i < 12; i++) {
@@ -107,7 +117,9 @@
       seen[name] = true;
       var next = config && config.getSelectedPolicy ? config.getSelectedPolicy(name) : "";
       if (!next) {
-        if (i === 0 && !explicit) throw new Error("未读到 " + name + " 的所选节点；请长按具体节点运行");
+        // Loon may omit an implicit default selection. Route through the group only
+        // after confirming that this exact group exists in the current config.
+        if (i === 0 && !explicit && groups.indexOf(name) < 0) throw new Error("未读到 " + name + " 的所选节点；请长按具体节点运行");
         if (/^(DIRECT|REJECT(?:-DROP)?)$/i.test(name)) throw new Error("当前选择为 " + name + "，请选择代理节点");
         return name;
       }
@@ -115,7 +127,7 @@
     }
     throw new Error("策略组嵌套过深，未执行检测");
   }
-  function request(probe, node, service) {
+  function request(probe, node, service, label) {
     var started = Date.now();
     function once(url, hops) {
       return new Promise(function (resolve) {
@@ -141,7 +153,7 @@
           return once(location, hops + 1);
         }
         var verdict = classify(service, probe, r);
-        verdict.service = service; verdict.probe = probe.name; verdict.node = node;
+        verdict.service = service; verdict.probe = probe.name; verdict.node = label || node;
         verdict.url = r.url; verdict.status = Number(r.status) || 0;
         verdict.elapsed = Date.now() - started;
         return verdict;
@@ -157,7 +169,7 @@
       html += '<div style="margin:14px 0;padding:10px;border:1px solid #999;border-radius:8px">';
       html += '<b>' + escapeHTML(r.service + " · " + r.probe) + '</b><br>';
       html += '<span style="color:' + (colors[r.kind] || "#a66a00") + '">' + escapeHTML(r.label) + '</span><br>';
-      html += escapeHTML(r.detail) + '<br><small>节点：' + escapeHTML(r.node || "未确定") + '<br>';
+      html += escapeHTML(r.detail) + '<br><small>测试出口：' + escapeHTML(r.node || "未确定") + '<br>';
       if (r.status) html += 'HTTP ' + r.status + ' · ';
       if (r.elapsed != null) html += r.elapsed + ' ms · ';
       html += escapeHTML(r.url || "") + '</small></div>';
@@ -173,17 +185,19 @@
     var environment = typeof $environment === "undefined" ? {} : ($environment || {});
     var params = environment.params || {};
     var config = typeof $config === "undefined" ? null : $config;
+    var groups = configuredGroups(config);
     var jobs = [];
     names.forEach(function (service) {
       try {
         var node = selectedNode(params, service, config);
-        SERVICES[service].forEach(function (probe) { jobs.push(request(probe, node, service)); });
+        var label = groups.indexOf(node) >= 0 ? "策略组 " + node + "（当前选择由 Loon 解析）" : node;
+        SERVICES[service].forEach(function (probe) { jobs.push(request(probe, node, service, label)); });
       } catch (error) {
         jobs.push(Promise.resolve({ service: service, probe: "节点选择", kind: "unknown", label: "未执行检测", detail: String(error) }));
       }
     });
     return Promise.all(jobs).then(function (rows) {
-      var content = rows.map(function (r) { return r.service + " / " + r.probe + ": " + r.label + "；" + r.detail + "；节点：" + (r.node || "未确定"); }).join("\n");
+      var content = rows.map(function (r) { return r.service + " / " + r.probe + ": " + r.label + "；" + r.detail + (r.status ? "；HTTP " + r.status : "") + (r.elapsed != null ? "；" + r.elapsed + " ms" : "") + "；测试出口：" + (r.node || "未确定"); }).join("\n");
       console.log(content);
       $done({ title: "AI 三服务诊断", content: content, htmlMessage: render(rows) });
     });
