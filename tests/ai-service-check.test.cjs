@@ -197,15 +197,28 @@ test('browser home and history return local HTML without outbound probes',async(
   }
 });
 
-test('browser comparison uses configured nodes, ignoring node names in the URL',async()=>{
+function memoryStore() {
+  const data={};
+  return {read:key=>data[key],write:(value,key)=>{data[key]=value;return true;}};
+}
+test('browser comparison queues configured nodes; worker runs them and status shows results',async()=>{
+  const store=memoryStore();
   const {calls,results}=await runLoon(null,()=>({status:403}),undefined,{
     $argument:'service=all&node=fixed',
-    $request:{url:'http://loon-ai.test/compare?node=other',method:'GET'}
+    $request:{url:'http://loon-ai.test/compare?node=other',method:'GET'},$persistentStore:store
   });
-  assert.equal(calls.length,4);
-  assert.ok(calls.every(o=>o.node==='fixed'));
-  assert.equal(results[0].response.status,200);
-  assert.match(results[0].response.body,/访问被拒绝/);
+  assert.equal(calls.length,0);
+  assert.equal(results[0].response.status,202);
+  assert.match(results[0].response.body,/诊断已排队/);
+  const worker=await runLoon(null,()=>({status:403}),undefined,{$argument:'service=worker',$persistentStore:store});
+  assert.equal(worker.calls.length,4);
+  assert.ok(worker.calls.every(o=>o.node==='fixed'));
+  const status=await runLoon(null,()=>{throw new Error('must not request');},undefined,{
+    $request:{url:'http://loon-ai.test/status'},$persistentStore:store
+  });
+  assert.equal(status.calls.length,0);
+  assert.match(status.results[0].response.body,/AI 诊断完成/);
+  assert.match(status.results[0].response.body,/访问被拒绝/);
 });
 
 test('other hosts, unknown pages and unsupported methods never trigger probes',async()=>{
@@ -245,4 +258,28 @@ test('exact IP entry renders the homepage without DNS or service requests',async
   });
   assert.equal(calls.length,0);
   assert.equal(results[0].response.status,200);
+});
+
+test('idle and expired workers never request services; missing storage rejects queuing',async()=>{
+  const store=memoryStore();
+  const idle=await runLoon(null,()=>{throw new Error('must not request');},undefined,{$argument:'service=worker',$persistentStore:store});
+  assert.equal(idle.calls.length,0);
+  store.write(JSON.stringify({id:'old',time:'2000-01-01T00:00:00Z',state:'pending',options:{service:'all',node:'fixed'}}),'ai-service-check.job.v1');
+  const expired=await runLoon(null,()=>{throw new Error('must not request');},undefined,{$argument:'service=worker',$persistentStore:store});
+  assert.equal(expired.calls.length,0);
+  assert.equal(JSON.parse(store.read('ai-service-check.job.v1')).state,'failed');
+  const missing=await runLoon(null,()=>{throw new Error('must not request');},undefined,{
+    $argument:'node=fixed',$request:{url:'http://198.19.255.254/compare'}
+  });
+  assert.equal(missing.calls.length,0);
+  assert.equal(missing.results[0].response.status,503);
+});
+
+test('repeated clicks preserve the active job and do not add requests',async()=>{
+  const store=memoryStore();
+  const extra={$argument:'node=fixed',$request:{url:'http://198.19.255.254/compare'},$persistentStore:store};
+  await runLoon(null,()=>{throw new Error('must not request');},undefined,extra);
+  const first=store.read('ai-service-check.job.v1');
+  await runLoon(null,()=>{throw new Error('must not request');},undefined,{...extra,$argument:'node=other'});
+  assert.equal(store.read('ai-service-check.job.v1'),first);
 });

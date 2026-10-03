@@ -152,6 +152,7 @@
     throw new Error("策略组嵌套过深，未执行检测");
   }
   var HISTORY_KEY = "ai-service-check.history.v2";
+  var JOB_KEY = "ai-service-check.job.v1", activeJob = null;
   function parseOptions(argument) {
     var values = {};
     if (argument && typeof argument === "object") values = argument;
@@ -171,7 +172,7 @@
     if (values.nodes) options.nodes = Array.isArray(values.nodes) ? values.nodes : JSON.parse(values.nodes);
     if (!Array.isArray(options.nodes) || options.nodes.length > 3 || options.nodes.some(function (n) { return typeof n !== "string" || !n.trim(); })) throw new Error("nodes 应为最多 3 个节点名称的 JSON 数组");
     options.nodes = options.nodes.filter(function (n, i, all) { return all.indexOf(n) === i; });
-    if (options.service !== "all" && options.service !== "history" && !SERVICES[options.service]) throw new Error("未知检测服务");
+    if (options.service !== "all" && options.service !== "history" && options.service !== "worker" && !SERVICES[options.service]) throw new Error("未知检测服务");
     return options;
   }
   function retryable(response) {
@@ -248,6 +249,22 @@
       return store.write(JSON.stringify(history.slice(-10)), HISTORY_KEY) === true;
     } catch (_) { return false; }
   }
+  function readJob(store) {
+    try { return store && store.read && JSON.parse(store.read(JOB_KEY) || "null"); }
+    catch (_) { return null; }
+  }
+  function writeJob(job, store) {
+    try { return !!(store && store.write && store.write(JSON.stringify(job), JOB_KEY) === true); }
+    catch (_) { return false; }
+  }
+  function jobExpired(job) { return !Number.isFinite(Date.parse(job.time)) || Date.now() - Date.parse(job.time) > 300000; }
+  function jobPage(job) {
+    if (!job) return { title: "尚无诊断任务", content: "请返回首页，选择同节点对比或当前策略组。" };
+    if (job.state === "done") return { title: "AI 诊断完成", htmlMessage: render(job.report.rows, job.report) };
+    if (job.state === "failed" || jobExpired(job)) return { title: "AI 诊断未完成", content: job.error || "任务已超时，请返回首页重新提交。" };
+    return { title: job.state === "running" ? "AI 诊断正在运行" : "AI 诊断已排队",
+      content: "任务将在一分钟内开始，检测最多约 28 秒。页面每 5 秒检查结果。", refresh: true };
+  }
   function webPath() {
     if (typeof $request === "undefined" || !$request) return null;
     var match = String($request.url || "").match(/^http:\/\/(?:loon-ai\.test|198\.19\.255\.254)(\/[^?#]*)?(?:[?#].*)?$/i);
@@ -257,7 +274,7 @@
     if (webPath() === null) { $done(payload); return; }
     var navigation = '<p><a href="/">首页</a> · <a href="/compare">同节点对比</a> · <a href="/groups">当前策略组</a> · <a href="/history">最近记录</a></p>';
     var html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + escapeHTML(payload.title) +
-      '</title><style>body{max-width:960px;margin:24px auto;padding:0 16px;font:16px/1.6 -apple-system,sans-serif}a{color:#386e9c}td{overflow-wrap:anywhere}pre{white-space:pre-wrap}</style></head><body><h1>' + escapeHTML(payload.title) + '</h1>' + navigation +
+      '</title>' + (payload.refresh ? '<meta http-equiv="refresh" content="5;url=/status">' : '') + '<style>body{max-width:960px;margin:24px auto;padding:0 16px;font:16px/1.6 -apple-system,sans-serif}a{color:#386e9c}td{overflow-wrap:anywhere}pre{white-space:pre-wrap}</style></head><body><h1>' + escapeHTML(payload.title) + '</h1>' + navigation +
       (payload.htmlMessage || '<pre>' + escapeHTML(payload.content || "") + '</pre>') + '</body></html>';
     $done({ response: { status: status || 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store",
       "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" }, body: html } });
@@ -297,10 +314,20 @@
     return html + '<p>实际能否聊天，请在相同节点下用对应 App 验证。</p></div>';
   }
   function run() {
-    console.log("AI_SERVICE_CHECK_V2: 开始专项诊断");
     if (typeof $request !== "undefined" && webPath() === null) { $done({}); return Promise.resolve(); }
     var options = parseOptions(typeof $argument === "undefined" ? null : $argument);
     var store = typeof $persistentStore === "undefined" ? null : $persistentStore;
+    if (options.service === "worker") {
+      var queued = readJob(store);
+      if (!queued || queued.state !== "pending") { $done(); return Promise.resolve(); }
+      if (jobExpired(queued)) { queued.state = "failed"; queued.error = "任务已过期，请重新提交。"; writeJob(queued, store); $done(); return Promise.resolve(); }
+      options = parseOptions(queued.options);
+      if (options.service === "worker" || options.service === "history") throw new Error("无效的后台检测任务");
+      queued.state = "running";
+      if (!writeJob(queued, store)) throw new Error("无法更新本机任务记录，未执行检测");
+      activeJob = queued;
+    }
+    console.log("AI_SERVICE_CHECK_V2: 开始专项诊断");
     var path = webPath();
     if (path !== null) {
       if ($request.method && String($request.method).toUpperCase() !== "GET") {
@@ -309,13 +336,20 @@
       if (path === "/") {
         finish({ title: "Loon AI 诊断", htmlMessage: '<p>点击「同节点对比」，分别检测以下节点的 ChatGPT、Claude 和 Gemini 入口：</p><ul>' +
           options.nodes.map(function (node) { return '<li>' + escapeHTML(node) + '</li>'; }).join("") +
-          '</ul><p>检测最多约 28 秒。首页和最近记录不会发起服务检测。实际能否聊天需在对应 App 中验证。</p><p>要检查原有三个策略组的当前选择，点击「当前策略组」。</p>' });
+          '</ul><p>提交后将在一分钟内开始，检测最多约 28 秒。首页和最近记录不会发起服务检测。实际能否聊天需在对应 App 中验证。</p><p>要检查原有三个策略组的当前选择，点击「当前策略组」。</p>' });
         return Promise.resolve();
       }
+      if (path === "/status") { finish(jobPage(readJob(store))); return Promise.resolve(); }
       if (path === "/history") options.service = "history";
-      else if (path === "/groups") options.nodes = [];
-      else if (path === "/compare") {
-        if (!options.nodes.length) throw new Error("此入口未配置比较节点，请在脚本参数中指定 node 或 nodes");
+      else if (path === "/groups" || path === "/compare") {
+        if (path === "/groups") options.nodes = [];
+        else if (!options.nodes.length) throw new Error("此入口未配置比较节点，请在脚本参数中指定 node 或 nodes");
+        var job = readJob(store);
+        if (!job || job.state !== "pending" && job.state !== "running" || jobExpired(job)) {
+          job = { id: Date.now().toString(36), time: new Date().toISOString(), state: "pending", options: options };
+          if (!writeJob(job, store)) { finish({ title: "无法提交诊断任务", content: "本机脚本存储不可用，请使用 Generic 入口。" }, 503); return Promise.resolve(); }
+        }
+        finish(jobPage(job), 202); return Promise.resolve();
       } else { finish({ title: "没有这个诊断页面", content: "请返回首页" }, 404); return Promise.resolve(); }
     }
     if (options.service === "history") {
@@ -348,7 +382,12 @@
     plan.forEach(function (p) { SERVICES[p.service].forEach(function (probe) { jobs.push(request(probe, p.node, p.service, p.label, options)); }); });
     return Promise.all(jobs).then(function (rows) {
       var report = { time: time, mode: fixed ? "固定节点对比" : "分别检测各服务策略组", rows: rows };
+      if (activeJob) report.queuedAt = activeJob.time;
       var saved = options.history && saveReport(report, store);
+      if (activeJob) {
+        var job = readJob(store);
+        if (job && job.id === activeJob.id) { job.state = "done"; job.report = report; writeJob(job, store); }
+      }
       var content = "检测时间：" + time + "；" + report.mode + "\n" + rows.map(function (r) {
         return r.service + " / " + r.probe + ": " + r.label + "；" + r.detail + (r.status ? "；HTTP " + r.status : "") + (r.elapsed != null ? "；" + r.elapsed + " ms" : "") + "；测试出口：" + (r.node || "未确定") +
           (r.attempts ? "；" + r.attempts.map(function (a, i) { return "请求" + (i + 1) + "=" + a.label + (a.status ? "/HTTP " + a.status : "") + "/" + a.elapsed + "ms"; }).join("，") : "");
@@ -360,6 +399,10 @@
   }
   function fail(error) {
     console.log("AI_SERVICE_CHECK: " + String(error));
+    if (activeJob) {
+      var store = typeof $persistentStore === "undefined" ? null : $persistentStore, job = readJob(store);
+      if (job && job.id === activeJob.id) { job.state = "failed"; job.error = String(error); writeJob(job, store); }
+    }
     finish({ title: "AI 检测失败", content: String(error) }, 500);
   }
   if (typeof $httpClient === "undefined" && typeof module !== "undefined" && module.exports) {
