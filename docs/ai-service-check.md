@@ -6,19 +6,19 @@
 
 ### 浏览器诊断页
 
-为 Mac 实现无需 Generic 菜单的浏览器入口 `http://loon-ai.test/`。本地逻辑检查通过，Mac 浏览器打开尚待解锁后实测，当前不能作为已验收入口：
+为 Mac 实现无需 Generic 菜单的浏览器入口 `http://198.19.255.254/`，可选域名别名为 `http://loon-ai.test/`。IP 入口不依赖 DNS；首页已通过 Loon Request Script 后台 HTTP 请求验收。浏览器界面与手机端仍待实测：
 
 - 首页：展示配置的比较节点，不发起检测。
 - 「同节点对比」：每个指定节点访问三个服务，返回对照表和分项详情。
 - 「当前策略组」：分别检测原有三个服务组的当前选择。
 - 「最近记录」：只读取本机最近 10 次结果。
 
-此地址由 Loon 的 Request Script 直接生成响应，不安装或监听本地 HTTP 服务器。需要 Loon 正在处理浏览器流量。只匹配精确的 HTTP 域名；配置增加 `loon-ai.test = 192.0.2.1` 的 Host 映射及一条该域名 DIRECT 规则。HTTP 入口不需 MitM，AI 服务检测仍使用 HTTPS 并校验证书。结果页禁止缓存和外部资源加载。
+此地址由 Loon 的 Request Script 直接生成响应，不安装或监听本地 HTTP 服务器。需要 Loon 正在处理浏览器流量。只匹配上述精确 HTTP 域名或 IP；配置增加 `loon-ai.test = 198.19.255.254` 的 Host 映射及该域名、该 IP 的 DIRECT 规则。HTTP 入口不需 MitM，AI 服务检测仍使用 HTTPS 并校验证书。结果页禁止缓存和外部资源加载。
 
 安装时将一项 Request Script 放入 `[Script]`：
 
 ```text
-request if ${url} ~= /^http:\/\/loon-ai\.test\//i then script("固定提交的 HTTPS 脚本地址", "service=all&nodes=编码后的数组") with tag="AI 浏览器诊断", timeout=35
+request if ${url} ~= /^http:\/\/(?:loon-ai\.test|198\.19\.255\.254)\//i then script("固定提交的 HTTPS 脚本地址", "service=all&nodes=编码后的数组") with tag="AI 浏览器诊断", timeout=35
 ```
 
 浏览器入口只采用配置中的比较节点，忽略网址中的节点参数。手机端是否能打开，仍需使用同一配置实际验收。
@@ -91,4 +91,4 @@ ChatGPT 和 Claude 没有找到能可靠判定服务可用性的单个 HTTP 端�
 
 `node --test tests/ai-service-check.test.cjs` 验证分类、节点固定、跨节点对比、Cookie/证书选项、重试条件与预算、重定向、历史记录、HTML 转义和单次结果回调。实际服务结果仍取决于运行时所选节点；手机端加载和报错复现需另外核实。
 
-2026-10-03：新版 22 项测试通过。以下为升级前的实测记录：Mac Loon 0.4.0(991) 已通过临时单次触发验证 HTTPS 源码加载及四个实际请求；隧道日志确认请求按指定节点/策略组选择转发，脚本正常结束。临时触发配置已清理。此验证确认脚本引擎执行，不代表已验证 Mac Generic 手动菜单或 iPhone 菜单，也不代表各 AI 已能登录、聊天。
+2026-10-03：新版 23 项测试通过。以下为升级前的实测记录：Mac Loon 0.4.0(991) 已通过临时单次触发验证 HTTPS 源码加载及四个实际请求；隧道日志确认请求按指定节点/策略组选择转发，脚本正常结束。临时触发配置已清理。此验证确认脚本引擎执行，不代表已验证 Mac Generic 手动菜单或 iPhone 菜单，也不代表各 AI 已能登录、聊天。

@@ -236,4 +236,13 @@ test('structured Apple URL errors retain reasons and distinguish decoding from c
   assert.equal(retry.calls.length,2);
   assert.match(retry.results[0].content,/连接中断/);
   assert.equal(checker.classify('Claude',probe,{error:{message:'unrecognized failure',code:-1016,domain:'Other'}}).kind,'unknown');
+  assert.match(checker.classify('Claude',probe,{error:'Error Domain=LNMacScriptXPC Code=5 "LNGCDAsyncSocketTLSError error 167772294"'}).label,/TLS/);
+});
+
+test('exact IP entry renders the homepage without DNS or service requests',async()=>{
+  const {calls,results}=await runLoon(null,()=>{throw new Error('must not request');},undefined,{
+    $argument:'node=fixed',$request:{url:'http://198.19.255.254/',method:'GET'}
+  });
+  assert.equal(calls.length,0);
+  assert.equal(results[0].response.status,200);
 });

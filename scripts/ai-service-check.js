@@ -53,7 +53,7 @@
       var info = errorInfo(response.error), error = info.text, code = info.domain === "NSURLErrorDomain" ? info.code : null;
       var evidence = "；底层错误：" + error;
       if (code === -1001 || /timed?\s*out|timeout|超时/i.test(error)) return result("timeout", "请求超时", "本次未得到响应，不能据此判断地区限制" + evidence);
-      if (code <= -1200 && code >= -1206 || /certificate|\bTLS\b|\bSSL\b|证书/i.test(error)) return result("network", "TLS 或证书错误", "该请求未通过安全连接检查，不能据此判断地区限制" + evidence);
+      if (code <= -1200 && code >= -1206 || /certificate|\bTLS\b|\bSSL\b|TLSError|SSLError|证书/i.test(error)) return result("network", "TLS 或证书错误", "该请求未通过安全连接检查，不能据此判断地区限制" + evidence);
       if (code === -1003 || code === -1006 || /\bDNS\b|resolve|nodename|找不到主机/i.test(error)) return result("network", "域名解析失败", "检查该节点的域名解析，不能据此判断地区限制" + evidence);
       if (code === -1015 || code === -1016 || code === -1017 || /decode|encoding|parse response|数据.*格式|解码/i.test(error)) return result("decode", "响应解析失败", "运行时未能解析响应，不能据此判断服务或地区不可用" + evidence);
       if (code === -1004 || code === -1005 || code === -1009 || /connection|connect|network|reset|refused|unreachable|连接|网络/i.test(error)) return result("network", "连接失败", "该节点未完成请求，不能据此判断地区限制" + evidence);
@@ -250,7 +250,7 @@
   }
   function webPath() {
     if (typeof $request === "undefined" || !$request) return null;
-    var match = String($request.url || "").match(/^http:\/\/loon-ai\.test(\/[^?#]*)?(?:[?#].*)?$/i);
+    var match = String($request.url || "").match(/^http:\/\/(?:loon-ai\.test|198\.19\.255\.254)(\/[^?#]*)?(?:[?#].*)?$/i);
     return match ? match[1] || "/" : null;
   }
   function finish(payload, status) {
