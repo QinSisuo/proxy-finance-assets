@@ -169,6 +169,13 @@
     var groups = configuredGroups(config), nodes = [], visited = Object.create(null),
       complete = !!(config && typeof config.getSubPolicies === "function" && Object.keys(SERVICES).every(function (name) { return groups.indexOf(name) >= 0; })),
       deadline = Date.now() + 5000;
+    if (!groups.length && config && typeof config.getConfig === "function") {
+      try {
+        var diagnostic = config.getConfig();
+        if (typeof diagnostic === "string") diagnostic = JSON.parse(diagnostic);
+        console.log("AI_CANDIDATE_CONFIG=" + JSON.stringify({ keys: Object.keys(diagnostic || {}), groups: groups.length }));
+      } catch (_) { console.log("AI_CANDIDATE_CONFIG=unreadable"); }
+    }
     function add(name) { if (typeof name === "string" && name && !/^(DIRECT|REJECT(?:-DROP)?)$/i.test(name) && groups.indexOf(name) < 0 && nodes.indexOf(name) < 0) nodes.push(name); }
     (options.nodes || []).forEach(function (name) { try { add(selectedNode({ node: name }, "ChatGPT", config)); } catch (_) {} });
     Object.keys(SERVICES).forEach(function (service) { try { add(selectedNode({}, service, config)); } catch (_) {} });
@@ -180,12 +187,18 @@
       return new Promise(function (resolve) {
         var settled = false;
         function finish(value) { if (!settled) { settled = true; resolve(value); } }
-        setTimeout(function () { if (!settled) { complete = false; finish([]); } }, Math.min(2500, Math.max(1, deadline - Date.now())));
+        setTimeout(function () { if (!settled) { complete = false; console.log("AI_CANDIDATE_TIMEOUT=" + name); finish([]); } }, Math.min(2500, Math.max(1, deadline - Date.now())));
         try {
           config.getSubPolicies(name, function (text) {
             if (settled) return;
             try {
               var names = typeof text === "string" ? JSON.parse(text || "[]") : text;
+              if (!Array.isArray(names) || names.some(function (n) { return typeof n !== "string"; })) {
+                console.log("AI_CANDIDATE_SCHEMA=" + JSON.stringify({ group: name, type: typeof names,
+                  keys: names && !Array.isArray(names) ? Object.keys(names) : [],
+                  firstType: Array.isArray(names) && names.length ? typeof names[0] : "empty",
+                  firstKeys: Array.isArray(names) && names[0] && typeof names[0] === "object" ? Object.keys(names[0]) : [] }));
+              }
               if (!Array.isArray(names) || names.some(function (n) { return typeof n !== "string"; })) throw new Error("节点列表格式异常");
               finish(names);
             } catch (_) { complete = false; finish([]); }
