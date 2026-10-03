@@ -197,6 +197,7 @@
                 console.log("AI_CANDIDATE_SCHEMA=" + JSON.stringify({ group: name, type: typeof names,
                   keys: names && !Array.isArray(names) ? Object.keys(names) : [],
                   firstType: Array.isArray(names) && names.length ? typeof names[0] : "empty",
+                  firstPolicyType: Array.isArray(names) && names[0] && typeof names[0] === "object" ? names[0].type : null,
                   firstKeys: Array.isArray(names) && names[0] && typeof names[0] === "object" ? Object.keys(names[0]) : [] }));
               }
               if (!Array.isArray(names) || names.some(function (n) { return typeof n !== "string"; })) throw new Error("节点列表格式异常");
