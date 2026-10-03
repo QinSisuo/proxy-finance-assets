@@ -1,4 +1,4 @@
-/* Loon Generic: service-specific, anonymous HTTPS diagnostics.
+/* Loon Generic: service-specific, anonymous HTTPS preflight evidence.
  * No credentials, conversation requests, or policy changes. Keeps 10 local summaries.
  * A reachable entry page is not proof that an account can chat.
  * Sources and limitations: docs/ai-service-check.md
@@ -7,8 +7,10 @@
   "use strict";
   var SERVICES = {
     ChatGPT: [{ name: "网页入口", url: "https://chatgpt.com/" },
-              { name: "移动辅助入口", url: "https://ios.chat.openai.com/" }],
-    Claude: [{ name: "网页入口", url: "https://claude.ai/" }],
+              { name: "移动辅助入口", url: "https://ios.chat.openai.com/" },
+              { name: "地区辅助接口", url: "https://api.openai.com/compliance/cookie_requirements", check: "openai-compliance" }],
+    Claude: [{ name: "网页入口", url: "https://claude.ai/" },
+             { name: "出口地区辅助", url: "https://claude.ai/cdn-cgi/trace", check: "claude-trace" }],
     Gemini: [{ name: "网页入口", url: "https://gemini.google.com/app?hl=en" }]
   };
   function headersLower(headers) {
@@ -89,12 +91,28 @@
       return result("redirect", "重定向，待确认", location ? "跳转目标：" + host(location) : "未识别跳转目标");
     }
     if (status >= 200 && status < 300) {
+      if (service === "ChatGPT" && probe.check === "openai-compliance") {
+        if (status === 200 && /^application\/json(?:;|$)/i.test(h["content-type"] || "") && json &&
+            typeof json.cookie_consent_required === "boolean" && !json.error) {
+          return result("partial", "辅助接口预检通过", "收到预期的 cookie_consent_required 布尔字段；仅证明该辅助接口接受本次请求，ChatGPT 服务可用性仍待确认");
+        }
+        return result("unknown", "辅助响应无法确认", "地区辅助接口未返回预期 JSON 结构；不判定为通过");
+      }
+      if (service === "Claude" && probe.check === "claude-trace") {
+        var traceRegions = body.match(/^loc=([A-Z]{2})\r?$/gm) || [];
+        if (status === 200 && /text\/plain/i.test(h["content-type"] || "") &&
+            /^h=claude\.ai\r?$/m.test(body) && traceRegions.length === 1) {
+          return result("region-info", "收到出口地区信息", "Cloudflare 地区标记：" + traceRegions[0].slice(4).trim() + "；这是地区辅助信息，未证明 Claude 可用");
+        }
+        return result("unknown", "地区响应无法确认", "未收到预期的 Claude Cloudflare trace 结构");
+      }
       // Inspect actual visible error headings, never preloaded translations in scripts.
       var markup = body.replace(/<!--[\s\S]*?-->|<script\b[^>]*>[\s\S]*?<\/script\s*>|<style\b[^>]*>[\s\S]*?<\/style\s*>|<template\b[^>]*>[\s\S]*?<\/template\s*>/gi, "");
       var heading, headingPattern = /<h[12]\b[^>]*>([\s\S]*?)<\/h[12]>/gi;
       while ((heading = headingPattern.exec(markup))) {
         var visible = heading[1].replace(/<[^>]*>/g, " ").replace(/&#39;|&apos;/g, "'").replace(/&rsquo;/g, "’").replace(/\s+/g, " ").trim();
-        if (/^(?:Gemini|Claude) (?:is not|isn't|isn’t) (?:currently )?available in (?:your|this) (?:country|region)(?: yet)?[.!]?$/i.test(visible)) {
+        if (new RegExp("^" + service + " (?:is not|isn't|isn’t) (?:currently )?(?:available|supported) in (?:your|this) (?:country|region)(?: yet)?[.!]?(?: Stay tuned!)?$", "i").test(visible) &&
+            (service === "Gemini" || service === "Claude")) {
           return result("region", "页面提示地区限制", visible);
         }
       }
@@ -127,6 +145,71 @@
       var groups = summary && summary.all_policy_groups;
       return Array.isArray(groups) ? groups.filter(function (name) { return typeof name === "string"; }) : [];
     } catch (_) { return []; }
+  }
+  function summaries(rows) {
+    var out = [], nodes = [];
+    rows.forEach(function (row) { if (row.node && nodes.indexOf(row.node) < 0) nodes.push(row.node); });
+    nodes.forEach(function (node) {
+      Object.keys(SERVICES).forEach(function (service) {
+        var evidence = rows.filter(function (row) { return row.node === node && row.service === service; });
+        if (!evidence.length) return;
+        var primary = evidence.filter(function (row) { return row.probe === "网页入口"; });
+        var restricted = primary.filter(function (row) { return row.kind === "region"; })[0];
+        var denied = primary.filter(function (row) { return row.kind === "denied"; })[0];
+        var label = restricted ? "明确受限" : denied ? "本次入口请求被拒" : "无法确认可用";
+        var detail = restricted ? restricted.detail : denied ? "拒绝原因尚未确认；不能直接归因于节点或地区" : "尚无经过验证的服务正向判据";
+        var partial = evidence.filter(function (row) { return row.kind === "partial"; });
+        if (!restricted && partial.length) detail += "；" + partial.map(function (row) { return row.probe + "预检通过"; }).join("、");
+        out.push({ node: node, service: service, state: restricted ? "restricted" : denied ? "denied" : "unknown", label: label, detail: detail });
+      });
+    });
+    return out;
+  }
+  function nodeChoices(options, config) {
+    var groups = configuredGroups(config), nodes = [], visited = Object.create(null),
+      complete = !!(config && typeof config.getSubPolicies === "function" && Object.keys(SERVICES).every(function (name) { return groups.indexOf(name) >= 0; })),
+      deadline = Date.now() + 5000;
+    function add(name) { if (typeof name === "string" && name && !/^(DIRECT|REJECT(?:-DROP)?)$/i.test(name) && groups.indexOf(name) < 0 && nodes.indexOf(name) < 0) nodes.push(name); }
+    (options.nodes || []).forEach(function (name) { try { add(selectedNode({ node: name }, "ChatGPT", config)); } catch (_) {} });
+    Object.keys(SERVICES).forEach(function (service) { try { add(selectedNode({}, service, config)); } catch (_) {} });
+    function children(name) {
+      if (visited[name]) return Promise.resolve();
+      if (Object.keys(visited).length >= 24 || nodes.length >= 200 || Date.now() >= deadline) { complete = false; return Promise.resolve(); }
+      visited[name] = true;
+      if (!config || typeof config.getSubPolicies !== "function") { complete = false; return Promise.resolve(); }
+      return new Promise(function (resolve) {
+        var settled = false;
+        function finish(value) { if (!settled) { settled = true; resolve(value); } }
+        setTimeout(function () { if (!settled) { complete = false; finish([]); } }, Math.min(2500, Math.max(1, deadline - Date.now())));
+        try {
+          config.getSubPolicies(name, function (text) {
+            if (settled) return;
+            try {
+              var names = typeof text === "string" ? JSON.parse(text || "[]") : text;
+              if (!Array.isArray(names) || names.some(function (n) { return typeof n !== "string"; })) throw new Error("节点列表格式异常");
+              finish(names);
+            } catch (_) { complete = false; finish([]); }
+          });
+        } catch (_) { complete = false; finish([]); }
+      }).then(function (names) {
+        var nested = [];
+        names.forEach(function (name) {
+          if (groups.indexOf(name) >= 0) nested.push(children(name)); else if (nodes.length < 200) add(name); else complete = false;
+        });
+        return Promise.all(nested);
+      });
+    }
+    return Promise.all(Object.keys(SERVICES).filter(function (name) { return groups.indexOf(name) >= 0; }).map(children))
+      .then(function () { return { nodes: nodes, complete: complete }; });
+  }
+  function webQuery(url) {
+    var query = String(url || "").split("?")[1] || "", values = Object.create(null);
+    query.split("#")[0].split("&").filter(Boolean).forEach(function (part) {
+      var pair = part.split("="), key = decodeURIComponent(pair.shift().replace(/\+/g, " "));
+      if (Object.prototype.hasOwnProperty.call(values, key)) throw new Error("查询参数重复");
+      values[key] = decodeURIComponent(pair.join("=").replace(/\+/g, " "));
+    });
+    return values;
   }
   function selectedNode(params, service, config) {
     var explicit = params.nodeInfo && params.nodeInfo.name || params.node;
@@ -172,7 +255,7 @@
     if (values.nodes) options.nodes = Array.isArray(values.nodes) ? values.nodes : JSON.parse(values.nodes);
     if (!Array.isArray(options.nodes) || options.nodes.length > 3 || options.nodes.some(function (n) { return typeof n !== "string" || !n.trim(); })) throw new Error("nodes 应为最多 3 个节点名称的 JSON 数组");
     options.nodes = options.nodes.filter(function (n, i, all) { return all.indexOf(n) === i; });
-    if (options.service !== "all" && options.service !== "history" && options.service !== "worker" && !SERVICES[options.service]) throw new Error("未知检测服务");
+    if (options.service !== "all" && options.service !== "history" && options.service !== "worker" && !Object.prototype.hasOwnProperty.call(SERVICES, options.service)) throw new Error("未知检测服务");
     return options;
   }
   function retryable(response) {
@@ -263,7 +346,16 @@
     if (job.state === "done") return { title: "AI 诊断完成", htmlMessage: render(job.report.rows, job.report) };
     if (job.state === "failed" || jobExpired(job)) return { title: "AI 诊断未完成", content: job.error || "任务已超时，请返回首页重新提交。" };
     return { title: job.state === "running" ? "AI 诊断正在运行" : "AI 诊断已排队",
-      content: "任务将在一分钟内开始，检测最多约 28 秒。页面每 5 秒检查结果。", refresh: true };
+      content: "服务：" + (job.options.service || "all") + "\n节点：" + ((job.options.nodes || []).join("、") || "各服务策略组当前选择") +
+        "\n任务将在一分钟内开始，检测最多约 28 秒。页面每 5 秒检查结果。", refresh: true };
+  }
+  function queueTask(options, store) {
+    var job = readJob(store);
+    if (!job || job.state !== "pending" && job.state !== "running" || jobExpired(job)) {
+      job = { id: Date.now().toString(36), time: new Date().toISOString(), state: "pending", options: options };
+      if (!writeJob(job, store)) { finish({ title: "无法提交预检任务", content: "本机脚本存储不可用，请使用 Generic 入口。" }, 503); return; }
+    }
+    finish(jobPage(job), 202);
   }
   function webPath() {
     if (typeof $request === "undefined" || !$request) return null;
@@ -272,27 +364,28 @@
   }
   function finish(payload, status) {
     if (webPath() === null) { $done(payload); return; }
-    var navigation = '<p><a href="/">首页</a> · <a href="/compare">同节点对比</a> · <a href="/groups">当前策略组</a> · <a href="/history">最近记录</a></p>';
+    var navigation = '<p><a href="/">选择节点预检</a> · <a href="/compare">同节点对比</a> · <a href="/groups">当前策略组</a> · <a href="/history">最近记录</a></p>';
     var html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + escapeHTML(payload.title) +
       '</title>' + (payload.refresh ? '<meta http-equiv="refresh" content="5;url=/status">' : '') + '<style>body{max-width:960px;margin:24px auto;padding:0 16px;font:16px/1.6 -apple-system,sans-serif}a{color:#386e9c}td{overflow-wrap:anywhere}pre{white-space:pre-wrap}</style></head><body><h1>' + escapeHTML(payload.title) + '</h1>' + navigation +
       (payload.htmlMessage || '<pre>' + escapeHTML(payload.content || "") + '</pre>') + '</body></html>';
     $done({ response: { status: status || 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store",
-      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" }, body: html } });
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'" }, body: html } });
   }
   function render(rows, report) {
     report = report || {};
-    var colors = { page: "#386e9c", region: "#b33737", denied: "#b33737" };
+    var colors = { page: "#386e9c", partial: "#386e9c", "region-info": "#386e9c", region: "#b33737", denied: "#b33737" };
     var html = '<div style="font-family:-apple-system;font-size:15px;line-height:1.55">';
     html += '<p>检测时间：' + escapeHTML(report.time || "未记录") + '<br>模式：' + escapeHTML(report.mode || "专项诊断") + '</p>';
-    html += '<p>匿名入口检测；账号与实际对话尚未验证。移动入口拒绝单独显示，不据此判定整个 ChatGPT 不可用。</p>';
-    html += '<table style="border-collapse:collapse;width:100%;font-size:13px"><tr><th>节点</th><th>ChatGPT 网页</th><th>Claude</th><th>Gemini</th></tr>';
+    html += '<p>使用前的匿名专项预检。辅助检查通过只代表该项通过；尚未确认服务可用时，整体显示“无法确认可用”。</p>';
+    html += '<table style="border-collapse:collapse;width:100%;font-size:13px"><tr><th>节点</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th></tr>';
+    var overview = summaries(rows);
     var nodes = [];
     rows.forEach(function (r) { if (r.node && nodes.indexOf(r.node) < 0) nodes.push(r.node); });
     nodes.forEach(function (node) {
       html += '<tr><td style="border:1px solid #999;padding:5px">' + escapeHTML(node) + '</td>';
       Object.keys(SERVICES).forEach(function (service) {
-        var r = rows.filter(function (row) { return row.node === node && row.service === service && row.probe === "网页入口"; })[0];
-        html += '<td style="border:1px solid #999;padding:5px">' + escapeHTML(r ? r.label + (r.retried ? "（已重试）" : "") : "未检测") + '</td>';
+        var r = overview.filter(function (row) { return row.node === node && row.service === service; })[0];
+        html += '<td style="border:1px solid #999;padding:5px">' + escapeHTML(r ? r.label : "未检测") + (r ? '<br><small>' + escapeHTML(r.detail) + '</small>' : '') + '</td>';
       });
       html += '</tr>';
     });
@@ -311,7 +404,7 @@
       });
       html += '</small></div>';
     });
-    return html + '<p>实际能否聊天，请在相同节点下用对应 App 验证。</p></div>';
+    return html + '<p>本次没有切换节点或发送聊天消息。登录要求、验证挑战及请求异常均保留为待确认证据。</p></div>';
   }
   function run() {
     if (typeof $request !== "undefined" && webPath() === null) { $done({}); return Promise.resolve(); }
@@ -327,29 +420,43 @@
       if (!writeJob(queued, store)) throw new Error("无法更新本机任务记录，未执行检测");
       activeJob = queued;
     }
-    console.log("AI_SERVICE_CHECK_V2: 开始专项诊断");
+    console.log("AI_SERVICE_CHECK_V3: 开始使用前专项预检");
     var path = webPath();
     if (path !== null) {
       if ($request.method && String($request.method).toUpperCase() !== "GET") {
         finish({ title: "请使用浏览器打开诊断页", content: "仅支持 GET" }, 405); return Promise.resolve();
       }
       if (path === "/") {
-        finish({ title: "Loon AI 诊断", htmlMessage: '<p>点击「同节点对比」，分别检测以下节点的 ChatGPT、Claude 和 Gemini 入口：</p><ul>' +
-          options.nodes.map(function (node) { return '<li>' + escapeHTML(node) + '</li>'; }).join("") +
-          '</ul><p>提交后将在一分钟内开始，检测最多约 28 秒。首页和最近记录不会发起服务检测。实际能否聊天需在对应 App 中验证。</p><p>要检查原有三个策略组的当前选择，点击「当前策略组」。</p>' });
-        return Promise.resolve();
+        return nodeChoices(options, typeof $config === "undefined" ? null : $config).then(function (choices) {
+          var selector = '<p>选择一个候选节点及要检查的服务，在使用前读取它们的专项响应。不会改变策略组当前选择。</p>';
+          if (choices.nodes.length) selector += '<form action="/check" method="get"><p><label>候选节点 <select name="node" required><option value="" disabled selected>请选择节点</option>' +
+            choices.nodes.map(function (node) { return '<option value="' + escapeHTML(node) + '">' + escapeHTML(node) + '</option>'; }).join("") +
+            '</select></label></p><p><label>服务 <select name="service"><option value="all">三个 AI</option><option value="ChatGPT">ChatGPT</option><option value="Claude">Claude</option><option value="Gemini">Gemini</option></select></label></p><button type="submit">开始专项预检</button></form>';
+          else selector += '<p>未读取到可固定的候选节点；可先使用「当前策略组」入口。</p>';
+          if (!choices.complete) selector += '<p>候选列表未完整读取；当前仅显示已读取的节点。</p>';
+          selector += '<p>“通过”只用于已有证据的具体检查项，无法确认的服务不会标成可用。提交后将在一分钟内开始；首页和最近记录不会访问 AI 服务。</p>';
+          finish({ title: "Loon AI 使用前预检", htmlMessage: selector });
+        });
       }
       if (path === "/status") { finish(jobPage(readJob(store))); return Promise.resolve(); }
       if (path === "/history") options.service = "history";
+      else if (path === "/check") {
+        var requested;
+        try {
+          requested = webQuery($request.url);
+          if (!requested.node || Object.keys(requested).some(function (key) { return key !== "node" && key !== "service"; }) ||
+              requested.service !== "all" && !Object.prototype.hasOwnProperty.call(SERVICES, requested.service)) throw new Error("请选择候选节点及有效服务");
+        } catch (_) { finish({ title: "预检参数无效", content: "请从首页选择候选节点和服务。" }, 400); return Promise.resolve(); }
+        return nodeChoices(options, typeof $config === "undefined" ? null : $config).then(function (choices) {
+          if (choices.nodes.indexOf(requested.node) < 0) { finish({ title: "候选节点未确认", content: "该节点不在当前读取到的候选列表中，请返回首页刷新。" }, 400); return; }
+          options.nodes = [requested.node]; options.service = requested.service;
+          queueTask(options, store);
+        });
+      }
       else if (path === "/groups" || path === "/compare") {
         if (path === "/groups") options.nodes = [];
         else if (!options.nodes.length) throw new Error("此入口未配置比较节点，请在脚本参数中指定 node 或 nodes");
-        var job = readJob(store);
-        if (!job || job.state !== "pending" && job.state !== "running" || jobExpired(job)) {
-          job = { id: Date.now().toString(36), time: new Date().toISOString(), state: "pending", options: options };
-          if (!writeJob(job, store)) { finish({ title: "无法提交诊断任务", content: "本机脚本存储不可用，请使用 Generic 入口。" }, 503); return Promise.resolve(); }
-        }
-        finish(jobPage(job), 202); return Promise.resolve();
+        queueTask(options, store); return Promise.resolve();
       } else { finish({ title: "没有这个诊断页面", content: "请返回首页" }, 404); return Promise.resolve(); }
     }
     if (options.service === "history") {
@@ -381,14 +488,16 @@
     });
     plan.forEach(function (p) { SERVICES[p.service].forEach(function (probe) { jobs.push(request(probe, p.node, p.service, p.label, options)); }); });
     return Promise.all(jobs).then(function (rows) {
-      var report = { time: time, mode: fixed ? "固定节点对比" : "分别检测各服务策略组", rows: rows };
+      var report = { time: time, mode: fixed ? "固定节点对比" : "分别检测各服务策略组", rows: rows, summaries: summaries(rows) };
       if (activeJob) report.queuedAt = activeJob.time;
       var saved = options.history && saveReport(report, store);
       if (activeJob) {
         var job = readJob(store);
         if (job && job.id === activeJob.id) { job.state = "done"; job.report = report; writeJob(job, store); }
       }
-      var content = "检测时间：" + time + "；" + report.mode + "\n" + rows.map(function (r) {
+      var content = "检测时间：" + time + "；" + report.mode + "\n服务预检：\n" + report.summaries.map(function (r) {
+        return r.service + " / " + r.node + ": " + r.label + "；" + r.detail;
+      }).join("\n") + "\n分项证据：\n" + rows.map(function (r) {
         return r.service + " / " + r.probe + ": " + r.label + "；" + r.detail + (r.status ? "；HTTP " + r.status : "") + (r.elapsed != null ? "；" + r.elapsed + " ms" : "") + "；测试出口：" + (r.node || "未确定") +
           (r.attempts ? "；" + r.attempts.map(function (a, i) { return "请求" + (i + 1) + "=" + a.label + (a.status ? "/HTTP " + a.status : "") + "/" + a.elapsed + "ms"; }).join("，") : "");
       }).join("\n") + "\n本机记录：" + (saved ? "已保存（最多 10 次）" : options.history ? "未能保存" : "已关闭");
@@ -406,7 +515,7 @@
     finish({ title: "AI 检测失败", content: String(error) }, 500);
   }
   if (typeof $httpClient === "undefined" && typeof module !== "undefined" && module.exports) {
-    module.exports = { classify: classify, selectedNode: selectedNode, render: render, resolveLocation: resolveLocation, parseOptions: parseOptions, request: request, readHistory: readHistory, saveReport: saveReport, run: run };
+    module.exports = { classify: classify, summaries: summaries, nodeChoices: nodeChoices, webQuery: webQuery, selectedNode: selectedNode, render: render, resolveLocation: resolveLocation, parseOptions: parseOptions, request: request, readHistory: readHistory, saveReport: saveReport, run: run };
   } else {
     try { run().catch(fail); }
     catch (error) { fail(error); }
