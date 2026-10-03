@@ -192,15 +192,19 @@
           config.getSubPolicies(name, function (text) {
             if (settled) return;
             try {
-              var names = typeof text === "string" ? JSON.parse(text || "[]") : text;
-              if (!Array.isArray(names) || names.some(function (n) { return typeof n !== "string"; })) {
-                console.log("AI_CANDIDATE_SCHEMA=" + JSON.stringify({ group: name, type: typeof names,
-                  keys: names && !Array.isArray(names) ? Object.keys(names) : [],
-                  firstType: Array.isArray(names) && names.length ? typeof names[0] : "empty",
-                  firstPolicyType: Array.isArray(names) && names[0] && typeof names[0] === "object" ? names[0].type : null,
-                  firstKeys: Array.isArray(names) && names[0] && typeof names[0] === "object" ? Object.keys(names[0]) : [] }));
-              }
-              if (!Array.isArray(names) || names.some(function (n) { return typeof n !== "string"; })) throw new Error("节点列表格式异常");
+              var entries = typeof text === "string" ? JSON.parse(text || "[]") : text;
+              if (!Array.isArray(entries)) throw new Error("节点列表格式异常");
+              var names = [];
+              entries.forEach(function (entry) {
+                if (typeof entry === "string") names.push(entry);
+                else if (entry && typeof entry.name === "string" &&
+                    (entry.type === "node" || groups.indexOf(entry.name) >= 0)) names.push(entry.name);
+                else {
+                  complete = false;
+                  console.log("AI_CANDIDATE_SCHEMA=" + JSON.stringify({ group: name, type: typeof entry,
+                    keys: entry && typeof entry === "object" ? Object.keys(entry) : [] }));
+                }
+              });
               finish(names);
             } catch (_) { complete = false; finish([]); }
           });

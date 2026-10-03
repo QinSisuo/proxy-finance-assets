@@ -396,3 +396,18 @@ test('malformed candidate lists fall back to known selections and do not claim c
   assert.equal(choices.complete,false);
   assert.deepEqual(new Set(choices.nodes),new Set(['candidate & one','another']));
 });
+
+test('actual Mac Loon name/type objects are accepted as candidates; unknown types stay unlisted',async()=>{
+  const config=candidateConfig();
+  config.getSubPolicies=(name,callback)=>callback(JSON.stringify([
+    {type:'node',name:'Mac candidate'}, {type:'node',name:'DIRECT'},
+    {type:'new-unknown-type',name:'unverified'}, {type:'group',name:'US'}
+  ]));
+  const choices=await checker.nodeChoices({nodes:[]},config);
+  assert.ok(choices.nodes.includes('Mac candidate'));
+  assert.ok(!choices.nodes.includes('unverified'));
+  assert.ok(!choices.nodes.includes('DIRECT'));
+  assert.equal(choices.complete,false);
+  config.getSubPolicies=(name,callback)=>callback(JSON.stringify([{type:'node',name:'Mac candidate'}]));
+  assert.equal((await checker.nodeChoices({nodes:[]},config)).complete,true);
+});
