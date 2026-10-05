@@ -1,0 +1,11 @@
+# NAME: Emby
+# AUTHOR: qinsisuo
+# RAW: https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/rules/Emby.list
+# UPDATED: 2026-10-05 18:04:26 +0800
+# DOMAIN: 3
+# TOTAL: 3
+
+# Exact observed service hosts
+DOMAIN,video.easyemby.com
+DOMAIN,emby.bangumi.ca
+DOMAIN,ap-cn01.emby.bangumi.ca
