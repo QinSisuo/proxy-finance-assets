@@ -1,0 +1,18 @@
+# NAME: Muse
+# AUTHOR: qinsisuo
+# SOURCE: https://ddgksf2013.top/filter/Ai.yaml (Muse AI section)
+# UPDATED: 2026-10-08 04:35:36 +0800
+# DOMAIN: 4
+# DOMAIN-SUFFIX: 3
+# TOTAL: 7
+
+# Muse service
+DOMAIN-SUFFIX,muse.ai
+DOMAIN,production.museai.com
+
+# Meta dependencies from upstream; suffix rules also route other Facebook traffic
+DOMAIN,connect.facebook.net
+DOMAIN,meta-ohttp-config-prod.fastly-edge.com
+DOMAIN,meta-ohttp-relay-prod.fastly-edge.com
+DOMAIN-SUFFIX,facebook.com
+DOMAIN-SUFFIX,fbcdn.net
