@@ -1,14 +1,23 @@
 # NAME: Muse
 # AUTHOR: qinsisuo
 # SOURCE: https://ddgksf2013.top/filter/Ai.yaml (Muse AI section)
-# UPDATED: 2026-10-08 04:35:36 +0800
-# DOMAIN: 4
+# VERIFIED: https://muse.ai/ public production JavaScript
+# UPDATED: 2026-10-08 04:41:36 +0800
+# DOMAIN: 10
 # DOMAIN-SUFFIX: 3
-# TOTAL: 7
+# TOTAL: 13
 
 # Muse service
 DOMAIN-SUFFIX,muse.ai
 DOMAIN,production.museai.com
+
+# Login, voice and production aliases confirmed in Muse public application code
+DOMAIN,auth.meta.com
+DOMAIN,agent.meta.ai
+DOMAIN,voice.museai.com
+DOMAIN,hatch.ecto1.ai
+DOMAIN,hatch.club
+DOMAIN,hatch.meta.ai
 
 # Meta dependencies from upstream; suffix rules also route other Facebook traffic
 DOMAIN,connect.facebook.net
