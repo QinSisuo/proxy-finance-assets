@@ -1,0 +1,16 @@
+#!name=V2EX 每日登录奖励
+#!desc=Safari 登录后本机保存会话，每天 08:05 领取每日登录奖励
+#!author=QinSisuo
+#!homepage=https://github.com/QinSisuo/proxy-finance-assets
+
+[Argument]
+capture=switch, true, false, tag=捕获登录状态, desc=每台设备首次安装后在 Safari 打开每日任务页；成功后建议关闭
+daily=switch, true, false, tag=每日自动领取, desc=首次安装后请先手动测试
+schedule=input, "5 8 * * *", tag=运行时间, desc=本机时间的五段 Cron 表达式
+
+[Script]
+http-request ^https:\/\/www\.v2ex\.com\/mission\/daily(?:\?|$) script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js,tag=V2EX 获取登录状态,timeout=10,enable={capture}
+cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js,tag=V2EX 每日奖励,timeout=45,enable={daily}
+
+[MITM]
+hostname=www.v2ex.com
