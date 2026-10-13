@@ -48,7 +48,20 @@
   }
   var destination = isGithub ? removeBridge(original).replace(/^https:\/\/www\.github\.com/i, "https://github.com") : original;
   var web = bypass(destination);
-  var webButton = isGithub ? web.replace(/^https:\/\/github\.com/i, "https://www.github.com") : web;
+  function githubBrowserURL(url) {
+    var hashAt = url.indexOf("#");
+    var beforeHash = hashAt < 0 ? url : url.slice(0, hashAt);
+    var suffix = hashAt < 0 ? "" : url.slice(hashAt);
+    // GitHub's AASA excludes non-achievement tab links from Universal Links.
+    // This is GitHub's existing repository README tab, not a Loon-only marker.
+    if (/[?&]tab=[^&]*/.test(beforeHash)) {
+      beforeHash = beforeHash.replace(/([?&])tab=[^&]*/g, "$1tab=readme-ov-file");
+    } else {
+      beforeHash += (beforeHash.indexOf("?") < 0 ? "?" : "&") + "tab=readme-ov-file";
+    }
+    return beforeHash + suffix;
+  }
+  var webButton = isGithub ? githubBrowserURL(web) : web;
   function escapeHtml(value) {
     return value.replace(/[&<>"']/g, function (char) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
@@ -72,7 +85,7 @@
     (isGithub ? '' : '<a class="secondary" href="x://">使用 X 专用链接打开 App</a>') +
     (isGithub ? '<button class="secondary" type="button" id="web">继续在微信中打开网页</button>' :
       '<a class="secondary" href="' + escapeHtml(webButton) + '">继续在微信中打开网页</a>') +
-    '<p>如果仍留在微信，请使用右上角菜单选择“在浏览器中打开”。</p></main>' +
+    '</main>' +
     (isGithub ? '<script>document.getElementById("web").addEventListener("click",function(){this.disabled=true;setTimeout(function(){location.replace(' + quoteJs(webButton) + ');},150);});</script>' :
       '<script>setTimeout(function(){location.href=' + quoteJs(target) + ';},150);</script>') + '</body></html>';
   $done({ response: { status: 200, headers: {

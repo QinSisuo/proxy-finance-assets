@@ -1,8 +1,8 @@
 #!name=微信链接尝试打开 App（X / GitHub）
-#!desc=v3.3.2：GitHub 网页入口改为普通按钮，点击后在网页内导航
+#!desc=v3.4.0：GitHub 网页入口使用 App 关联配置排除的 README 标签链接
 #!author=QinSisuo
 #!homepage=https://github.com/QinSisuo/proxy-finance-assets
-#!date=v3.3.2 (2026-10-13)
+#!date=v3.4.0 (2026-10-13)
 #!loon_version=3.5.1(983)
 
 [Script]
