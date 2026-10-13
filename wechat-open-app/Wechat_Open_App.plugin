@@ -1,9 +1,10 @@
-#!name=微信链接尝试打开 App（X / GitHub）
-#!desc=v3.4.1：移除 X 专用链接备用按钮，保留 App 和网页入口
+#!name=微信外链打开 App · X / GitHub
+#!desc=从微信打开 X 与 GitHub 链接，直达对应 App。X 尝试自动跳转，GitHub 点击按钮打开；也可选择继续在微信中浏览网页。需启用 HTTPS 解密。
 #!author=QinSisuo
-#!homepage=https://github.com/QinSisuo/proxy-finance-assets
-#!date=v3.4.1 (2026-10-13)
+#!homepage=https://github.com/QinSisuo/proxy-finance-assets/tree/main/wechat-open-app
+#!date=v3.4.2 (2026-10-13)
 #!loon_version=3.5.1(983)
+#!tag=微信,链接跳转,工具
 
 [Script]
 request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/c246b446ce5b65fc5eaa2cfdaeb8d60dffed8aa3/wechat-open-app/Wechat_Open_App.js") with tag="微信链接打开 App", timeout=10
