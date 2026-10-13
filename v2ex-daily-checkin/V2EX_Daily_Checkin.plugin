@@ -10,7 +10,7 @@ schedule=input, "5 8 * * *", tag=运行时间, desc=本机时间的五段 Cron �
 
 [Script]
 http-request ^https:\/\/www\.v2ex\.com\/mission\/daily(?:\?|$) script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js,tag=V2EX 获取登录状态,timeout=10,enable={capture}
-cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js,tag=V2EX 每日奖励,timeout=45,enable={daily}
+cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js,tag=V2EX 每日奖励,timeout=75,enable={daily}
 
 [MITM]
 hostname=www.v2ex.com
