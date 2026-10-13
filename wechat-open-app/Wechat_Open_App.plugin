@@ -9,7 +9,7 @@
 github_notification = switch,true,tag=GitHub 系统通知,desc=微信打开 GitHub 链接时发通知；点击通知尝试打开 App
 
 [Script]
-request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/wechat-open-app/Wechat_Open_App.js?v=3.2.0", {${github_notification}}) with tag="微信链接打开 App", timeout=10
+request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/a2d88d40349770d7a7160a4b4c80d779f23787c1/wechat-open-app/Wechat_Open_App.js", {${github_notification}}) with tag="微信链接打开 App", timeout=10
 
 [Mitm]
 hostname = x.com, www.x.com, twitter.com, www.twitter.com, github.com, www.github.com

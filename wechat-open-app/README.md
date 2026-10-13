@@ -6,7 +6,7 @@ Loon 插件地址：`https://raw.githubusercontent.com/QinSisuo/proxy-finance-as
 
 在 Loon 中添加上述插件，按 Loon 提示启用 HTTPS 解密并信任证书。微信内用 GET 打开 X、Twitter 或 GitHub 的 HTML 页面时，插件会显示轻量跳转页：X 尝试通过 `x.com` 与 `twitter.com` 之间的跨域 Universal Link 唤起 X，并提供 X 官方文档确认的 `x://` 备用按钮；GitHub 自动发出带原始链接的 Loon 系统通知，用户点击通知后由 Loon 请求系统打开链接；同时保留 `www.github.com` 过渡页中的手动入口。GitHub 页面不再自动导航到网页版，以保留用户点击入口。页面保留原网页入口。其他 App、非网页请求和非微信请求不处理。
 
-更新已有插件时，请在 Loon 中更新插件及脚本。本版脚本地址带 `?v=3.2.0`，用于区分此前缓存。`www.github.com` 必须纳入已启用的 HTTPS 解密范围，插件已声明该域名。GitHub 主站首页以及部分产品、仓库子页面被 GitHub 官方的 App 关联文件排除，不能保证所有链接都进入 App。
+更新已有插件时，请在 Loon 中更新插件及脚本。本版脚本使用固定提交地址，避免下载到此前缓存的脚本。`www.github.com` 必须纳入已启用的 HTTPS 解密范围，插件已声明该域名。GitHub 主站首页以及部分产品、仓库子页面被 GitHub 官方的 App 关联文件排除，不能保证所有链接都进入 App。
 
 ## 平台限制
 
