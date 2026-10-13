@@ -1,7 +1,9 @@
 #!name=微信链接尝试打开 App（X / GitHub）
-#!desc=微信内打开 X 或 GitHub 网页时，尝试唤起对应 App，并提供手动入口
+#!desc=v3.0.0：微信链接尝试唤起 X / GitHub App；GitHub 使用跨域过渡页
 #!author=QinSisuo
 #!homepage=https://github.com/QinSisuo/proxy-finance-assets
+#!date=v3.0.0 (2026-10-13)
+#!loon_version=3.5.1(983)
 
 [Script]
 request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/wechat-open-app/Wechat_Open_App.js?v=3") with tag="微信链接打开 App", timeout=10
