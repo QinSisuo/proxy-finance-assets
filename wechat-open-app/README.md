@@ -2,7 +2,9 @@
 
 Loon 插件地址：`https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/wechat-open-app/Wechat_Open_App.plugin`
 
-在 Loon 中添加上述插件，按 Loon 提示启用 HTTPS 解密并信任证书。微信内用 GET 打开 X、Twitter 或 GitHub 的 HTML 页面时，插件会显示轻量跳转页：X 尝试通过 `x.com` 与 `twitter.com` 之间的跨域 Universal Link 唤起 X，并提供 X 官方文档确认的 `x://` 备用按钮；GitHub 尝试重新导航到 GitHub Universal Link。页面保留原网页入口。其他 App、非网页请求和非微信请求不处理。
+在 Loon 中添加上述插件，按 Loon 提示启用 HTTPS 解密并信任证书。微信内用 GET 打开 X、Twitter 或 GitHub 的 HTML 页面时，插件会显示轻量跳转页：X 尝试通过 `x.com` 与 `twitter.com` 之间的跨域 Universal Link 唤起 X，并提供 X 官方文档确认的 `x://` 备用按钮；GitHub 先导航到由 Loon 返回内容的 `www.github.com` 过渡页，再从该页面尝试打开原来的 `github.com` 链接，避免同域名内导航。页面保留原网页入口。其他 App、非网页请求和非微信请求不处理。
+
+更新已有插件时，请在 Loon 中更新插件及脚本。本版脚本地址带 `?v=3`，用于区分此前缓存。`www.github.com` 必须纳入已启用的 HTTPS 解密范围，插件已声明该域名。GitHub 主站首页以及部分产品、仓库子页面被 GitHub 官方的 App 关联文件排除，不能保证所有链接都进入 App。
 
 ## 平台限制
 

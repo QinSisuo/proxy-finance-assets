@@ -10,19 +10,37 @@
   var match = /^https:\/\/(?:www\.)?(x\.com|twitter\.com|github\.com)(?=[:/?#]|$)/i.exec(original);
   if (!match || !/MicroMessenger/i.test(header("user-agent")) || request.method !== "GET" ||
       !/text\/html/i.test(header("accept")) || /(?:[?&])loon_open_web=1(?:[&#]|$)/.test(original) ||
-      (/^https:\/\/github\.com/i.test(original) && /\/(?:login|sessions|settings|notifications|api|_graphql)(?:[/?#]|$)/i.test(original))) {
+      (/^https:\/\/(?:www\.)?github\.com/i.test(original) && /\/(?:login|sessions|settings|notifications|api|_graphql)(?:[/?#]|$)/i.test(original))) {
     $done({});
     return;
   }
   var isGithub = /github\.com/i.test(match[1]);
   var appName = isGithub ? "GitHub" : "X";
+  var isGithubBridge = isGithub && /(?:[?&])loon_github_bridge=1(?:[&#]|$)/.test(original);
   function bypass(url) {
     var hash = url.indexOf("#");
     var beforeHash = hash < 0 ? url : url.slice(0, hash);
     var suffix = hash < 0 ? "" : url.slice(hash);
     return beforeHash + (beforeHash.indexOf("?") < 0 ? "?" : "&") + "loon_open_web=1" + suffix;
   }
-  var web = bypass(original);
+  function removeBridge(url) {
+    return url.replace(/([?&])loon_github_bridge=1(?=&|#|$)/, function (_, separator) {
+      return separator === "?" && /[?&]loon_github_bridge=1&/.test(url) ? "?" : "";
+    }).replace(/\?&/, "?");
+  }
+  if (isGithub && !isGithubBridge && !/^https:\/\/www\.github\.com/i.test(original)) {
+    // Loon serves the bridge on www.github.com before GitHub's canonical redirect.
+    // Its link to github.com can then invoke Universal Links from another origin.
+    var bridge = original.replace(/^https:\/\/github\.com/i, "https://www.github.com");
+    var hashAt = bridge.indexOf("#");
+    var bridgeBase = hashAt < 0 ? bridge : bridge.slice(0, hashAt);
+    bridge = bridgeBase + (bridgeBase.indexOf("?") < 0 ? "?" : "&") +
+      "loon_github_bridge=1" + (hashAt < 0 ? "" : bridge.slice(hashAt));
+    $done({ response: { status: 302, headers: { Location: bridge, "Cache-Control": "no-store" }, body: "" } });
+    return;
+  }
+  var destination = isGithub ? removeBridge(original).replace(/^https:\/\/www\.github\.com/i, "https://github.com") : original;
+  var web = bypass(destination);
   function escapeHtml(value) {
     return value.replace(/[&<>"']/g, function (char) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
