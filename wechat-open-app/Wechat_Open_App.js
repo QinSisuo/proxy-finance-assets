@@ -82,7 +82,6 @@
     '<h1>打开 ' + appName + '</h1>' +
     (isGithub ? '<p>点击下方按钮，在 GitHub App 中打开此链接。页面会保持在这里，等待你的选择。</p>' : '<p>正在尝试打开对应 App。若微信拦截，请点下方按钮。</p>') +
     '<a id="open" href="' + escapeHtml(target) + '">' + (isGithub ? '打开 GitHub App' : '尝试打开 X App') + '</a>' +
-    (isGithub ? '' : '<a class="secondary" href="x://">使用 X 专用链接打开 App</a>') +
     (isGithub ? '<button class="secondary" type="button" id="web">继续在微信中打开网页</button>' :
       '<a class="secondary" href="' + escapeHtml(webButton) + '">继续在微信中打开网页</a>') +
     '</main>' +
