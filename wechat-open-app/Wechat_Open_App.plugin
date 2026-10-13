@@ -1,12 +1,15 @@
 #!name=微信链接尝试打开 App（X / GitHub）
-#!desc=v3.0.0：微信链接尝试唤起 X / GitHub App；GitHub 使用跨域过渡页
+#!desc=v3.2.0：X 尝试自动唤起；GitHub 通过点击系统通知打开
 #!author=QinSisuo
 #!homepage=https://github.com/QinSisuo/proxy-finance-assets
-#!date=v3.0.0 (2026-10-13)
+#!date=v3.2.0 (2026-10-13)
 #!loon_version=3.5.1(983)
 
+[Argument]
+github_notification = switch,true,tag=GitHub 系统通知,desc=微信打开 GitHub 链接时发通知；点击通知尝试打开 App
+
 [Script]
-request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/wechat-open-app/Wechat_Open_App.js?v=3") with tag="微信链接打开 App", timeout=10
+request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/wechat-open-app/Wechat_Open_App.js?v=3.2.0", {${github_notification}}) with tag="微信链接打开 App", timeout=10
 
 [Mitm]
 hostname = x.com, www.x.com, twitter.com, www.twitter.com, github.com, www.github.com

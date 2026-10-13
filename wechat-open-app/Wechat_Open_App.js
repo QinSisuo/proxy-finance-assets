@@ -1,4 +1,4 @@
-/* global $request, $done */
+/* global $request, $done, $argument, $notification, $persistentStore */
 (function () {
   var request = $request || {};
   var headers = request.headers || {};
@@ -27,6 +27,23 @@
     return url.replace(/([?&])loon_github_bridge=1(?=&|#|$)/, function (_, separator) {
       return separator === "?" && /[?&]loon_github_bridge=1&/.test(url) ? "?" : "";
     }).replace(/\?&/, "?");
+  }
+  var notificationEnabled = typeof $argument !== "undefined" && $argument &&
+    typeof $argument === "object" ? $argument.github_notification !== false : true;
+  var notificationLink = removeBridge(original).replace(/^https:\/\/www\.github\.com/i, "https://github.com");
+  if (isGithub && !isGithubBridge && notificationEnabled && typeof $notification !== "undefined") {
+    // This native entry point is outside WeChat's web view. A tap is required.
+    var now = Date.now();
+    var last = null;
+    try {
+      if (typeof $persistentStore !== "undefined") last = JSON.parse($persistentStore.read("wechat_github_last_notification") || "null");
+    } catch (_) { last = null; }
+    if (!last || last.url !== notificationLink || now - last.time > 30000) {
+      $notification.post("在 GitHub 中打开", "点击此通知打开刚才的链接", notificationLink, { openUrl: notificationLink });
+      if (typeof $persistentStore !== "undefined") {
+        $persistentStore.write(JSON.stringify({ url: notificationLink, time: now }), "wechat_github_last_notification");
+      }
+    }
   }
   if (isGithub && !isGithubBridge && !/^https:\/\/www\.github\.com/i.test(original)) {
     // Loon serves the bridge on www.github.com before GitHub's canonical redirect.
@@ -58,12 +75,13 @@
     '<title>打开 ' + appName + '</title><style>body{font:17px -apple-system,BlinkMacSystemFont,sans-serif;margin:0;background:#f6f7f8;color:#16181c}' +
     'main{max-width:430px;margin:12vh auto;padding:26px}a{display:block;text-align:center;padding:15px;margin:14px 0;border-radius:12px;background:#111;color:white;text-decoration:none}' +
     'a.secondary{background:#e6e8eb;color:#16181c}p{line-height:1.5;color:#536471;word-break:break-all}</style></head><body><main>' +
-    '<h1>打开 ' + appName + '</h1><p>正在尝试打开对应 App。若微信拦截，请点下方按钮。</p>' +
+    '<h1>打开 ' + appName + '</h1>' +
+    (isGithub ? '<p>请点击 Loon 系统通知，尝试在 GitHub 中打开此链接。需要允许 Loon 发送通知。</p>' : '<p>正在尝试打开对应 App。若微信拦截，请点下方按钮。</p>') +
     '<a id="open" href="' + escapeHtml(target) + '">尝试打开 ' + appName + ' App</a>' +
     (isGithub ? '' : '<a class="secondary" href="x://">使用 X 专用链接打开 App</a>') +
     '<a class="secondary" href="' + escapeHtml(web) + '">继续在微信中打开网页</a>' +
     '<p>如果仍留在微信，请使用右上角菜单选择“在浏览器中打开”。</p></main>' +
-    '<script>setTimeout(function(){location.href=' + quoteJs(target) + ';},150);</script></body></html>';
+    (isGithub ? '' : '<script>setTimeout(function(){location.href=' + quoteJs(target) + ';},150);</script>') + '</body></html>';
   $done({ response: { status: 200, headers: {
     "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff"
