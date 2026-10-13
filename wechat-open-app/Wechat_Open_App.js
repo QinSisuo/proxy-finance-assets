@@ -64,15 +64,17 @@
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'">' +
     '<title>打开 ' + appName + '</title><style>body{font:17px -apple-system,BlinkMacSystemFont,sans-serif;margin:0;background:#f6f7f8;color:#16181c}' +
-    'main{max-width:430px;margin:12vh auto;padding:26px}a{display:block;text-align:center;padding:15px;margin:14px 0;border-radius:12px;background:#111;color:white;text-decoration:none}' +
-    'a.secondary{background:#e6e8eb;color:#16181c}p{line-height:1.5;color:#536471;word-break:break-all}</style></head><body><main>' +
+    'main{max-width:430px;margin:12vh auto;padding:26px}a,button{display:block;text-align:center;padding:15px;margin:14px 0;border-radius:12px;background:#111;color:white;text-decoration:none}' +
+    'button{width:100%;border:0;font:inherit;cursor:pointer}.secondary{background:#e6e8eb;color:#16181c}p{line-height:1.5;color:#536471;word-break:break-all}</style></head><body><main>' +
     '<h1>打开 ' + appName + '</h1>' +
     (isGithub ? '<p>点击下方按钮，在 GitHub App 中打开此链接。页面会保持在这里，等待你的选择。</p>' : '<p>正在尝试打开对应 App。若微信拦截，请点下方按钮。</p>') +
     '<a id="open" href="' + escapeHtml(target) + '">' + (isGithub ? '打开 GitHub App' : '尝试打开 X App') + '</a>' +
     (isGithub ? '' : '<a class="secondary" href="x://">使用 X 专用链接打开 App</a>') +
-    '<a class="secondary" href="' + escapeHtml(webButton) + '">继续在微信中打开网页</a>' +
+    (isGithub ? '<button class="secondary" type="button" id="web">继续在微信中打开网页</button>' :
+      '<a class="secondary" href="' + escapeHtml(webButton) + '">继续在微信中打开网页</a>') +
     '<p>如果仍留在微信，请使用右上角菜单选择“在浏览器中打开”。</p></main>' +
-    (isGithub ? '' : '<script>setTimeout(function(){location.href=' + quoteJs(target) + ';},150);</script>') + '</body></html>';
+    (isGithub ? '<script>document.getElementById("web").addEventListener("click",function(){this.disabled=true;setTimeout(function(){location.replace(' + quoteJs(webButton) + ');},150);});</script>' :
+      '<script>setTimeout(function(){location.href=' + quoteJs(target) + ';},150);</script>') + '</body></html>';
   $done({ response: { status: 200, headers: {
     "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff"
