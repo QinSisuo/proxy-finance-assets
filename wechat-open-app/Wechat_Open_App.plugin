@@ -6,7 +6,7 @@
 #!loon_version=3.5.1(983)
 
 [Script]
-request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/e6eb7411c9d7f50d4ef8bea8cb60a37775bc0618/wechat-open-app/Wechat_Open_App.js") with tag="微信链接打开 App", timeout=10
+request if ${url} ~= /^https:\/\/(?:www\.)?(?:x\.com|twitter\.com|github\.com)(?:[\/?#]|$)/i && ${request.method} == "GET" && ${request.header['User-Agent']} ~= /MicroMessenger/i then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/ef9fb5f9ca4d48c1c35de1231105a8824147d5bf/wechat-open-app/Wechat_Open_App.js") with tag="微信链接打开 App", timeout=10
 
 [Mitm]
 hostname = x.com, www.x.com, twitter.com, www.twitter.com, github.com, www.github.com
