@@ -1,8 +1,8 @@
 #!name=微信链接尝试打开 App（X / GitHub）
-#!desc=v3.3.0：X 尝试自动唤起；GitHub 页面停留，点击按钮打开 App
+#!desc=v3.3.1：GitHub 打开 App 与继续浏览网页使用独立入口
 #!author=QinSisuo
 #!homepage=https://github.com/QinSisuo/proxy-finance-assets
-#!date=v3.3.0 (2026-10-13)
+#!date=v3.3.1 (2026-10-13)
 #!loon_version=3.5.1(983)
 
 [Script]

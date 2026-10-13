@@ -9,12 +9,19 @@
   var original = String(request.url || "");
   var match = /^https:\/\/(?:www\.)?(x\.com|twitter\.com|github\.com)(?=[:/?#]|$)/i.exec(original);
   if (!match || !/MicroMessenger/i.test(header("user-agent")) || request.method !== "GET" ||
-      !/text\/html/i.test(header("accept")) || /(?:[?&])loon_open_web=1(?:[&#]|$)/.test(original) ||
+      !/text\/html/i.test(header("accept")) ||
       (/^https:\/\/(?:www\.)?github\.com/i.test(original) && /\/(?:login|sessions|settings|notifications|api|_graphql)(?:[/?#]|$)/i.test(original))) {
     $done({});
     return;
   }
   var isGithub = /github\.com/i.test(match[1]);
+  if (/(?:[?&])loon_open_web=1(?:[&#]|$)/.test(original)) {
+    // Keep browser navigation on www.github.com; fetch github.com internally
+    // instead of returning GitHub's www -> apex redirect to the web view.
+    $done(isGithub && /^https:\/\/www\.github\.com/i.test(original) ?
+      { url: original.replace(/^https:\/\/www\.github\.com/i, "https://github.com") } : {});
+    return;
+  }
   var appName = isGithub ? "GitHub" : "X";
   var isGithubBridge = isGithub && /(?:[?&])loon_github_bridge=1(?:[&#]|$)/.test(original);
   function bypass(url) {
@@ -41,6 +48,7 @@
   }
   var destination = isGithub ? removeBridge(original).replace(/^https:\/\/www\.github\.com/i, "https://github.com") : original;
   var web = bypass(destination);
+  var webButton = isGithub ? web.replace(/^https:\/\/github\.com/i, "https://www.github.com") : web;
   function escapeHtml(value) {
     return value.replace(/[&<>"']/g, function (char) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
@@ -62,7 +70,7 @@
     (isGithub ? '<p>点击下方按钮，在 GitHub App 中打开此链接。页面会保持在这里，等待你的选择。</p>' : '<p>正在尝试打开对应 App。若微信拦截，请点下方按钮。</p>') +
     '<a id="open" href="' + escapeHtml(target) + '">' + (isGithub ? '打开 GitHub App' : '尝试打开 X App') + '</a>' +
     (isGithub ? '' : '<a class="secondary" href="x://">使用 X 专用链接打开 App</a>') +
-    '<a class="secondary" href="' + escapeHtml(web) + '">继续在微信中打开网页</a>' +
+    '<a class="secondary" href="' + escapeHtml(webButton) + '">继续在微信中打开网页</a>' +
     '<p>如果仍留在微信，请使用右上角菜单选择“在浏览器中打开”。</p></main>' +
     (isGithub ? '' : '<script>setTimeout(function(){location.href=' + quoteJs(target) + ';},150);</script>') + '</body></html>';
   $done({ response: { status: 200, headers: {
