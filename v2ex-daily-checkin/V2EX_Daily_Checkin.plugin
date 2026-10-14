@@ -1,6 +1,6 @@
 #!name=V2EX 每日登录奖励
-#!desc=Safari 登录后本机保存会话，每天 08:05 领取每日登录奖励
-#!author=QinSisuo
+#!desc=采用 MyCheckIn.plugin 的 V2EX 原脚本，每天 08:05 领取每日登录奖励
+#!author=anyehttp[https://github.com/anyehttp], QinSisuo
 #!homepage=https://github.com/QinSisuo/proxy-finance-assets
 #!date=2026-10-14
 
@@ -10,8 +10,8 @@ daily=switch, true, false, tag=每日自动领取, desc=首次安装后请先手
 schedule=input, "5 8 * * *", tag=运行时间, desc=本机时间的五段 Cron 表达式
 
 [Script]
-http-request ^https:\/\/www\.v2ex\.com\/mission\/daily(?:\?|$) script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261014b,tag=V2EX 获取登录状态,timeout=10,enable={capture}
-cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261014b,tag=V2EX 每日奖励,timeout=75,enable={daily}
+http-request ^https:\/\/www\.v2ex\.com\/mission\/daily script-path=https://raw.githubusercontent.com/anyehttp/quantumult-x/main/task/v2ex.js,tag=V2EX 获取登录状态,timeout=10,enable={capture}
+cron {schedule} script-path=https://raw.githubusercontent.com/anyehttp/quantumult-x/main/task/v2ex.js,tag=V2EX 每日奖励,timeout=200,enable={daily}
 
 [MITM]
 hostname=www.v2ex.com
