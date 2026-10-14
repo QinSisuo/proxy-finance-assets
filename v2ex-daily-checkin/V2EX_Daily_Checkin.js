@@ -2,6 +2,7 @@
 (function () {
   var BASE = "https://www.v2ex.com", DAILY = BASE + "/mission/daily";
   var CK = "v2ex_daily_cookie_v1", ATTEMPT = "v2ex_daily_attempt_v1", RESULT = "v2ex_daily_result_v1";
+  var UA = "v2ex_daily_user_agent_v1", LANGUAGE = "v2ex_daily_language_v1";
   var ended = false;
   function finish(message, silent) {
     if (ended) return;
@@ -20,6 +21,13 @@
     for (var key in headers) if (Object.prototype.hasOwnProperty.call(headers, key) && key.toLowerCase() === name) return String(headers[key]);
     return "";
   }
+  function responseHeader(headers, name) {
+    if (!headers) return [];
+    for (var key in headers) if (Object.prototype.hasOwnProperty.call(headers, key) && key.toLowerCase() === name) {
+      return Array.isArray(headers[key]) ? headers[key] : [String(headers[key])];
+    }
+    return [];
+  }
   function selectCookie(raw) {
     var parts = String(raw || "").split(";"), chosen = [];
     for (var i = 0; i < parts.length; i++) {
@@ -27,6 +35,29 @@
       if (match) chosen.push(match[1] + "=" + match[2]);
     }
     return chosen.join("; ");
+  }
+  function mergeSessionCookies(cookie, headers) {
+    var values = {}, order = ["PB3_SESSION", "A2"];
+    var parts = selectCookie(cookie).split("; ");
+    for (var i = 0; i < parts.length; i++) {
+      var old = /^(PB3_SESSION|A2)=(.*)$/.exec(parts[i]);
+      if (old) values[old[1]] = old[2];
+    }
+    var updates = responseHeader(headers, "set-cookie");
+    for (var j = 0; j < updates.length; j++) {
+      // Loon may return Set-Cookie as an array or one combined string.
+      // Only cookie boundaries are split; commas in Expires remain intact.
+      var cookies = String(updates[j]).split(/,(?=\s*[^\s;,=]+\s*=)/);
+      for (var k = 0; k < cookies.length; k++) {
+        var fresh = /^\s*(PB3_SESSION|A2)=([^;]*)(?:;|$)/.exec(cookies[k]);
+        if (!fresh) continue;
+        if (!fresh[2] || fresh[2] === '""' || /;\s*max-age\s*=\s*0(?:;|$)/i.test(cookies[k])) delete values[fresh[1]];
+        else values[fresh[1]] = fresh[2];
+      }
+    }
+    var result = [];
+    for (var n = 0; n < order.length; n++) if (values[order[n]]) result.push(order[n] + "=" + values[order[n]]);
+    return result.join("; ");
   }
   function loggedOut(html) { return /(?:need to sign in first|你要查看的页面需要先登录|请先登录|<form[^>]+action=["']\/signin)/i.test(html); }
   function claimed(html) { return /(?:每日登录奖励已领取|今日的登录奖励已领取|daily login reward has been claimed)/i.test(html); }
@@ -37,10 +68,18 @@
     var match = /(?:onclick\s*=\s*["'][^"']*location\.href\s*=\s*['"]|<a\b[^>]*href\s*=\s*["'])(\/mission\/daily\/redeem\?once=[A-Za-z0-9_-]+)(?:['"])/i.exec(html);
     return match ? match[1] : "";
   }
-  function get(url, cookie, referer, callback) {
-    var headers = {"Cookie": cookie, "Accept": "text/html"};
+  function get(url, session, referer, callback) {
+    var headers = {"Cookie": session.cookie, "Accept": "text/html", "User-Agent": session.userAgent};
+    if (session.language) headers["Accept-Language"] = session.language;
     if (referer) headers.Referer = referer;
-    try { $httpClient.get({url: url, timeout: 10000, "auto-redirect": false, headers: headers}, callback); }
+    try { $httpClient.get({url: url, timeout: 10000, "auto-redirect": false, "auto-cookie": false, headers: headers}, function (error, response, body) {
+      var updated = mergeSessionCookies(session.cookie, response && response.headers);
+      if (updated !== session.cookie) {
+        session.cookie = updated;
+        if (!store(CK, updated)) return finish("无法保存网站更新的会话，本次停止。请重新捕获登录状态。");
+      }
+      callback(error, response, body);
+    }); }
     catch (_) { callback("request failed", null, ""); }
   }
   function issue(error, response, body) {
@@ -89,11 +128,16 @@
       if ($request.method !== "GET" || !/^https:\/\/www\.v2ex\.com\/mission\/daily(?:\?|$)/.test($request.url || "")) return finish("", true);
       var selected = selectCookie(header($request.headers, "cookie"));
       if (!selected) return finish("未发现所需登录 Cookie；请先在 Safari 登录 V2EX，再打开每日任务页。");
-      if (!store(CK, selected)) return finish("无法在 Loon 本机保存登录状态。");
-      return finish("已在本机保存会话。请关闭“捕获登录状态”，并手动运行每日奖励脚本测试。");
+      var userAgent = header($request.headers, "user-agent");
+      if (!userAgent) return finish("请求缺少 Safari 浏览器信息，未更新授权。请在 Safari 从 V2EX 首页进入每日任务页。");
+      if (!store(CK, selected) || !store(UA, userAgent) || !store(LANGUAGE, header($request.headers, "accept-language"))) return finish("无法在 Loon 本机保存登录状态。");
+      return finish("已在本机保存会话和浏览器信息。请关闭“捕获登录状态”，并手动运行每日奖励脚本测试。");
     }
     var cookie = read(CK);
     if (!cookie) return finish("没有登录状态。请在 Safari 登录 V2EX，并打开每日任务页。");
+    var savedUserAgent = read(UA);
+    if (!savedUserAgent) return finish("旧授权缺少 Safari 浏览器信息。请开启“捕获登录状态”，在 Safari 从 V2EX 首页进入每日任务页重新授权。");
+    cookie = {cookie: cookie, userAgent: savedUserAgent, language: read(LANGUAGE)};
     var today = dateKey();
     // Always inspect V2EX. Device-local dates and cached results are not
     // authoritative for the website's reward day or a changed account.
