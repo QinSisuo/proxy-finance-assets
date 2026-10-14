@@ -43,13 +43,31 @@ const twoClicks = run({data: cookie, responses: [home, unclaimed, {status: 302},
 assert.equal(twoClicks.requests.length, 6);
 assert.match(twoClicks.notes[0], /复查确认/);
 assert.match(run({data: cookie, responses: [home, unclaimed, {status: 302}, rejected]}).notes[0], /拒绝/);
-assert.equal(run({data: cookie, responses: [home, unclaimed, {error: "timeout"}]}).requests.length, 3);
+const timedOut = run({data: cookie, responses: [home, unclaimed, {error: "timeout"}]});
+assert.equal(timedOut.requests.length, 3);
+// A failed attempt must not block a second run on the same day.
+const afterFailure = run({data: timedOut.data, responses: [home, unclaimed, {status: 302}, claimed]});
+assert.equal(afterFailure.requests.length, 4);
+assert.match(afterFailure.notes[0], /复查确认/);
+// If the timed-out request actually succeeded, the next live check skips redeem.
+const recovered = run({data: timedOut.data, responses: [home, claimed]});
+assert.equal(recovered.requests.length, 2);
+assert.match(recovered.notes[0], /网站确认/);
+// An ambiguous live page is not evidence that it is safe to submit again.
+const unknown = run({data: timedOut.data, responses: [home, {status: 200, body: "unknown"}]});
+assert.equal(unknown.requests.length, 2);
+assert.match(unknown.notes[0], /没有发送领取请求/);
 for (const status of [403, 429]) assert.match(run({data: cookie, responses: [{status}]}).notes[0], new RegExp(String(status)));
 assert.match(run({data: cookie, responses: [{error: "network"}]}).notes[0], /网络错误或超时/);
 assert.equal(run({data: cookie, responses: [home, {status: 200, body: "unknown"}]}).requests.length, 2);
 const captured = run({request: {method: "GET", url: "https://www.v2ex.com/mission/daily", headers: {Cookie: "PB3_SESSION=one; A2=two; tracker=three"}}});
 assert.equal(captured.data[key], "PB3_SESSION=one; A2=two");
 assert(!captured.notes.join(" ").includes("one"));
-const repeat = run({data: success.data});
-assert.equal(repeat.requests.length, 0);
-console.log("simulation: 13 scenarios passed");
+const repeat = run({data: success.data, responses: [home, claimed]});
+assert.equal(repeat.requests.length, 2);
+assert.match(repeat.notes[0], /网站确认/);
+// A previous account/day's cached success must not override the live page.
+const staleSuccess = run({data: success.data, responses: [home, unclaimed, {status: 302}, claimed]});
+assert.equal(staleSuccess.requests.length, 4);
+assert.match(staleSuccess.notes[0], /复查确认/);
+console.log("simulation: 17 scenarios passed");

@@ -65,21 +65,22 @@
     var path = redeemPath(body);
     if (!path) return finish("页面未出现可确认的领取链接；可能是页面结构变化。没有发送领取请求。");
     if (allowance === 0) {
-      if (read(ATTEMPT) === today) return finish("今天已有一次领取尝试，结果未确认；不会重复提交。");
-      if (!store(ATTEMPT, today)) return finish("无法保存防重复状态，未发送领取请求。");
+      // Record the attempt for diagnostics; it must not prevent a later run
+      // from checking the live page and retrying an unclaimed reward.
+      if (!store(ATTEMPT, today)) return finish("无法保存运行状态，未发送领取请求。");
     }
     get(BASE + path, cookie, DAILY, function (error, response) {
-      if (error) return finish("领取请求网络错误或超时；结果未确认，不会重复提交。");
+      if (error) return finish("领取请求网络错误或超时；本次停止。可重新运行，先检查网站领取状态。");
       var status = response && response.status;
-      if (status !== 200 && status !== 302 && status !== 303) return finish("领取请求返回 HTTP " + status + "；结果未确认，不会重复提交。");
+      if (status !== 200 && status !== 302 && status !== 303) return finish("领取请求返回 HTTP " + status + "；本次停止。下次运行将先检查网站领取状态。");
       get(DAILY, cookie, DAILY, function (checkError, checkResponse, checkBody) {
         var checkProblem = issue(checkError, checkResponse, checkBody);
-        if (checkProblem) return finish("领取后复查失败：" + checkProblem + "；结果未确认，不会重复提交。");
+        if (checkProblem) return finish("领取后复查失败：" + checkProblem + "；可重新运行检查领取状态。");
         if (loggedOut(checkBody)) return finish("领取后登录失效，结果未确认；请重新登录并手动查看。");
         if (claimed(checkBody)) { store(RESULT, today); return finish("网站复查确认：每日登录奖励已领取。请查看铜币余额。"); }
         if (rejected(checkBody)) return finish("V2EX 拒绝了当前浏览器环境；请在 Safari 从首页进入每日任务页手动检查。");
         if (allowance === 0 && clickAgain(checkBody)) return redeem(cookie, today, checkBody, 1);
-        return finish("领取结果无法确认；不会重复提交。请在 Safari 查看每日任务页。");
+        return finish("领取结果无法确认，本次停止。可重新运行检查，或在 Safari 查看每日任务页。");
       });
     });
   }
@@ -94,7 +95,8 @@
     var cookie = read(CK);
     if (!cookie) return finish("没有登录状态。请在 Safari 登录 V2EX，并打开每日任务页。");
     var today = dateKey();
-    if (read(RESULT) === today) return finish("今天已确认领取，跳过。", true);
+    // Always inspect V2EX. Device-local dates and cached results are not
+    // authoritative for the website's reward day or a changed account.
     get(BASE + "/", cookie, "", function (homeError, homeResponse, homeBody) {
       var homeProblem = issue(homeError, homeResponse, homeBody);
       if (homeProblem) return finish("读取 V2EX 首页失败：" + homeProblem);
