@@ -1,0 +1,17 @@
+#!name=中国移动·签到有礼
+#!desc=全国版 App 签到与领奖；先用上海号码授权并手动测试，再开启定时任务。奖励以活动页面为准。
+#!author=Curtinp118[https://github.com/curtinp118], QinSisuo
+#!homepage=https://github.com/QinSisuo/proxy-finance-assets/tree/main/china-mobile-checkin
+#!date=2026-10-25
+
+[Argument]
+capture=switch, true, false, tag=获取当前号码登录状态, desc=请先切换到上海号码；收到保存通知后关闭，避免被另一个号码覆盖
+daily=switch, false, true, tag=每天签到与领奖, desc=手动测试通过后开启；不代表流量已到账
+schedule=input, "35 8 * * *", tag=签到时间, desc=设备本地时间，默认每天 08:35
+
+[Script]
+http-request ^https:\/\/wx\.10086\.cn\/qwhdhub\/ script-path=https://raw.githubusercontent.com/curtinp118/Scripthub/main/scripts/cmcc/cmcc.js,tag=移动签到获取登录状态,timeout=10,enable={capture}
+cron {schedule} script-path=https://raw.githubusercontent.com/curtinp118/Scripthub/main/scripts/cmcc/cmcc.js,tag=移动签到与领奖,timeout=60,enable={daily}
+
+[MITM]
+hostname=wx.10086.cn
