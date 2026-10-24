@@ -1,17 +1,16 @@
-/* Upstream simulation only: no network and no user credentials. */
+/* Compatibility simulation only: no network and no user credentials. */
 const fs = require("fs");
 const vm = require("vm");
 const assert = require("assert");
-assert(process.argv[2], "Pass downloaded upstream cmcc.js");
-const source = fs.readFileSync(process.argv[2], "utf8");
+const source = fs.readFileSync(__dirname + "/ChinaMobile_Checkin.js", "utf8");
 const plugin = fs.readFileSync(__dirname + "/ChinaMobile_Checkin.plugin", "utf8");
-const upstream = "https://raw.githubusercontent.com/curtinp118/Scripthub/main/scripts/cmcc/cmcc.js";
-assert.equal(plugin.split("script-path=" + upstream).length - 1, 2);
+const scriptURL = "https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/china-mobile-checkin/ChinaMobile_Checkin.js?v=1.2.1";
+assert.equal(plugin.split("script-path=" + scriptURL).length - 1, 2);
 assert.match(plugin, /daily=switch, false, true/);
 assert.match(plugin, /schedule=input, "35 8 \* \* \*"/);
 assert.match(plugin, /hostname=wx\.10086\.cn\s*$/);
 const mockCookie = "QWHD_SESSION_TOKEN=simulation-only";
-async function run(options) {
+async function run(options, code = source) {
   const data = Object.assign({}, options.data || {});
   const queue = (options.responses || []).slice();
   const requests = [], notes = [], logs = [];
@@ -33,12 +32,12 @@ async function run(options) {
     $done: () => {done++; resolveDone();}
   };
   if (options.request) context.$request = options.request;
-  vm.runInNewContext(source, context);
+  vm.runInNewContext(code, context);
   await completed;
   assert.equal(done, 1);
   assert(!logs.join(" ").includes("simulation-only"));
   assert(!notes.join(" ").includes("simulation-only"));
-  return {data, requests, notes};
+  return {data, requests, notes, logs};
 }
 (async function () {
   const missing = await run({});
@@ -62,5 +61,25 @@ async function run(options) {
     {success: true, data: {taskAwardChance: [{id: "mock-prize"}]}}, {success: false}
   ]});
   assert(failedPrize.notes.join(" ").includes("领奖失败"));
-  console.log("CMCC: static checks and 6 simulated executions passed; no live account test");
+  const duplicate = await run({data: captured.data, responses: [{success: false, msg: "今日已签到过，无法再次签到"}]});
+  assert.equal(duplicate.requests.length, 1);
+  assert(duplicate.notes.join(" ").includes("今日已签到"));
+  assert(!duplicate.notes.join(" ").includes("签到失败"));
+  assert(duplicate.logs.some(line => /^Duplicate\s*:\s*1$/.test(line)));
+  assert(duplicate.logs.some(line => /^Failed\s*:\s*0$/.test(line)));
+  assert(!duplicate.logs.some(line => /^Success\s*:\s*1$/.test(line)));
+  const vague = await run({data: captured.data, responses: [{success: false, msg: "未知签到状态"}]});
+  assert(vague.notes.join(" ").includes("签到失败"));
+  assert.equal(vague.requests.length, 1);
+  // Optionally compare actual request options against the downloaded upstream.
+  if (process.argv[2]) {
+    const original = fs.readFileSync(process.argv[2], "utf8");
+    const baseline = await run({data: captured.data, responses: [
+      {success: true, data: {taskAwardChance: [{id: "mock-prize"}]}},
+      {success: true, data: {prizeName: "模拟流量券（不代表到账）"}}
+    ]}, original);
+    assert.equal(JSON.stringify(prize.requests), JSON.stringify(baseline.requests));
+    console.log("Request options match upstream for sign-in and reward collection");
+  }
+  console.log("CMCC: static checks and 8 simulated executions passed; duplicate screenshot reproduced");
 })().catch(error => {console.error(error); process.exitCode = 1;});

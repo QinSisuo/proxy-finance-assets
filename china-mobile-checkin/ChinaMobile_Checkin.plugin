@@ -10,8 +10,8 @@ daily=switch, false, true, tag=每天签到与领奖, desc=手动测试通过后
 schedule=input, "35 8 * * *", tag=签到时间, desc=设备本地时间，默认每天 08:35
 
 [Script]
-http-request ^https:\/\/wx\.10086\.cn\/qwhdhub\/ script-path=https://raw.githubusercontent.com/curtinp118/Scripthub/main/scripts/cmcc/cmcc.js,tag=移动签到获取登录状态,timeout=10,enable={capture}
-cron {schedule} script-path=https://raw.githubusercontent.com/curtinp118/Scripthub/main/scripts/cmcc/cmcc.js,tag=移动签到与领奖,timeout=60,enable={daily}
+http-request ^https:\/\/wx\.10086\.cn\/qwhdhub\/ script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/china-mobile-checkin/ChinaMobile_Checkin.js?v=1.2.1,tag=移动签到获取登录状态,timeout=10,enable={capture}
+cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/china-mobile-checkin/ChinaMobile_Checkin.js?v=1.2.1,tag=移动签到与领奖,timeout=60,enable={daily}
 
 [MITM]
 hostname=wx.10086.cn
