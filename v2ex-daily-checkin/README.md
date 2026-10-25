@@ -1,49 +1,45 @@
-# V2EX 每日奖励 · 原版兼容配置
+# V2EX 每日奖励 · Loon
 
-插件订阅地址保持不变：
+安装或更新一个插件 URL 即可，无需在 iPhone 手动导入 JS：
 
 `https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.plugin`
 
-2026-10-14 本版直接引用用户已经确认可用的 [MyCheckIn.plugin](https://gist.githubusercontent.com/hughshen/3225051bf7eee12d7f5bb71fead2e688/raw/MyCheckIn.plugin) 中的 V2EX 脚本：
+## 2026-10-25 修复：网络失败误报已签到
 
-`https://raw.githubusercontent.com/anyehttp/quantumult-x/main/task/v2ex.js`
+用户真机日志显示 `Socket closed by remote peer`，之后原版仍然通知“已签到”。已用下载的原脚本复现：`fetchSignInOnce()` 请求失败后捕获异常但没有中止，`signin()` 随后读取上次保存的 `v2ex_html`。旧页面含“每日登录奖励已领取”时，会错误地把历史状态报告为本次结果。
 
-保留单插件安装、每天设备本地时间 08:05 和参数开关，只配置 V2EX。运行不需要电脑或常驻服务器。
+当前脚本仅使用本次请求取得的页面，不读取或保存 `v2ex_html`。读取发生网络错误时，只重试一次读取；两次均失败则明确报告无法确认。领取后重新读取任务页确认，领取请求本身不做网络重试；下次运行仍可先检查网站并重新尝试。不会按本机日期锁定当天。
 
-## 更新与使用
+保留 [参考原脚本](https://raw.githubusercontent.com/anyehttp/quantumult-x/main/task/v2ex.js) 的完整 Cookie、`v2ex_data` 数据键、User-Agent、直接读取每日页以及 Loon 默认重定向和 Cookie 行为。没有额外首页请求、HTTP Referer 或手工 Cookie 合并。请求超时设为 10 秒。脚本只请求 V2EX 每日任务及其页面提供的领取链接，不访问原版的外部提示文件。
 
-1. 在 Loon 更新现有的 V2EX 插件订阅，检查两个脚本条目的 `script-path` 均指向 `anyehttp/quantumult-x/main/task/v2ex.js`。如果仍出现“浏览器环境被拒绝”或“旧授权缺少 Safari 浏览器信息”等之前的通知，说明还在运行旧脚本，请检查插件资源更新。
-2. 同一台 iPhone 如果已经使用参考插件并成功保存 Cookie，新配置使用相同的本机数据键 `v2ex_data`，可直接沿用。此前自编脚本的 `v2ex_daily_cookie_v1` 不会被读取，因为它已裁剪掉原版保留的信息。
-3. 若该设备还没有原版登录状态，打开“捕获登录状态”，在 Safari 登录 V2EX 并进入每日任务页。Loon 的 MITM 和已信任证书需要正常生效。收到“获取签到Cookie成功”后可关闭捕获开关。
-4. 手动运行“V2EX 每日奖励”，再通过 Safari 的每日任务页和铜币余额确认结果。“每日自动领取”默认开启，时间可在插件参数中修改；iOS 和网络状态可能影响后台触发，不能保证任意情况下准点运行。
-5. 若参考插件同时启用了 V2EX 定时任务，保留其中一个定时任务，避免两份配置同时运行。
+## iPhone 更新和第一次测试
 
-## 与之前版本的实际差异
+1. 在 Loon 更新现有 V2EX 插件，确认脚本 URL 带 `V2EX_Daily_Checkin.js?v=20261025`。
+2. 已通过原版保存的 Cookie 可以直接沿用，无需重新登录。手动运行“V2EX 每日奖励”。网站返回明确已领状态时才通知确认；网络仍断开则应显示失败，不能据此声称铜币已到账。
+3. 若无 Cookie 或登录失效，开启插件“捕获登录状态”，保持代理连接及 Loon MITM、证书信任正常。在 Safari 登录 V2EX，从首页进入每日任务页，等到 Cookie 保存通知，再关闭捕获并测试。不要分享 Cookie。
+4. 插件“每日自动领取”默认开启，每天设备本地时间 08:05，可修改时间。每台设备分别授权。若同时安装其他 V2EX 插件，仅保留一份定时任务，避免旧原版继续发出错误通知。
+5. 用 Safari 每日任务页的领取状态及账户铜币记录确认到账；首页入口可能受刷新影响，单凭入口或通知不能证明铜币变化。
 
-| 项目 | 参考原版（本版直接使用） | 此前自编版本 |
-| --- | --- | --- |
-| Cookie | 保存访问 V2EX 时的完整 Cookie 到 `v2ex_data` | 仅保存 `PB3_SESSION`、`A2` |
-| 起始请求 | 直接请求 `/mission/daily` | 先请求首页 |
-| User-Agent | 使用原脚本的固定字符串 | 改成捕获的 Safari 字符串 |
-| HTTP Referer | 不额外指定 | 额外指定 |
-| 自动重定向与 Cookie | 沿用 Loon 默认行为 | 手动关闭并实现会话更新 |
-| 当天重跑 | 每次读取网页判断 | 曾以本机尝试记录阻止，后来移除 |
+## 排查
 
-这些是已核对的代码差异，尚未通过逐项账号实验确定哪一项导致之前 iPhone 失败。因此本版整体采用已经被用户确认可用的原脚本，不宣称找到了唯一根因。
+- `网络连接被远端关闭`：本次网络请求失败，可能涉及节点、网络或网站连接；截图不能确定具体原因。保持本机代理开启，可稍后重跑，或在 Loon 中选择可正常访问 V2EX 的现有节点。
+- HTTP 403/429 或网站拒绝：本次停止，不绕过网站检查。
+- 页面结构无法识别：不提交猜测的领取请求。
+- 仍收到 `v2ex签到 / ✅❌已签到`：这是旧原版的通知格式，检查是否未更新资源或仍启用了另一份旧任务。新版标题为 `V2EX 每日奖励`。
 
-## 原脚本的行为与限制
+## 隐私与运行条件
 
-原脚本从每日页面提取动态 `once` 领取链接，使用 GET 请求；根据返回页面中的“每日登录奖励已领取”判断结果。它保存完整 Cookie 和页面 HTML 到 Loon 本机持久存储，不是已验证的最小 Cookie 方案；也没有领取后的独立任务页复查。这里明确采用原版兼容行为，不能把它称为满足此前全部严格验证要求的自编实现。
+Cookie 只保存在设备本地，沿用原版完整 Cookie 方案；没有验证最小 Cookie 集。不会记录 Cookie、完整网页或一次性令牌到日志或通知。保留原版以 `@` 分隔的多账号格式。
 
-原版会请求作者的两个公开提示文件；默认没有把 Cookie 加到这些请求中。若本机另行配置了 `bark_key`，原脚本还有 Bark 通知功能。源码由第三方仓库维护，今后的上游变化会影响使用。Cookie 不放进插件、GitHub、聊天或安装 URL，每台设备分别保存和授权。
+定时触发依赖 Loon、iOS 后台调度、网络与 VPN 连接状态，不保证任意情况下准点运行。网站奖励日期不由本机缓存决定，每次查询实时页面。
 
-本仓库 `V2EX_Daily_Checkin.js` 仅用于提醒尚未更新插件的旧客户端，当前插件不会执行它。
+## 验证记录
 
-## 测试记录
+- 已实际复现原版“旧页面 + Socket 错误 => 已签到”缺陷。
+- 已执行 JS 语法检查和 16 项离线回归测试，包括该缺陷、读取重试、领取结果复查、领取响应丢失、403/429、登录失效及同日重跑。
+- 已检查请求头和完整 Cookie 传递与参考版一致，未修改 Loon 的默认重定向/Cookie 开关。
+- 修订版没有经过用户 iPhone 实际领取测试，也未确认铜币到账；模拟测试不能证明网络故障已消失。
 
-- 实际获取参考插件及其原脚本，核对两个脚本地址、捕获表达式、数据键和请求流程。
-- 使用 Node 的模拟 Loon API 执行原脚本，测试捕获、无 Cookie、已领取、未领取、失败后重跑；不使用真实凭据、不发网络请求。
-- 校验本插件只包含 V2EX 的请求、定时任务和 MITM 主机。
-- 用户表示参考原插件在其设备可用；本次更新尚未经过用户 iPhone 的实际领取验证。
+开发检查：`node --check V2EX_Daily_Checkin.js` 和 `node test.js`。使用下载的参考脚本复现旧缺陷：`node test.js --reference /path/to/upstream-v2ex.js`。iPhone 用户无需运行开发工具。
 
-开发模拟测试：先下载原脚本到临时文件，再运行 `node test.js /path/to/v2ex.js`。该命令仅用于开发检查，iPhone 用户不需要运行。
+Loon 语法与 API：[官方插件示例](https://github.com/Loon0x00/LoonExampleConfig/blob/master/Plugin/Plugin_Example.plugin)、[官方脚本文档](https://github.com/Loon0x00/LoonManual/blob/master/docs/cn/script.md)、[官方 API 文档](https://github.com/Loon0x00/LoonManual/blob/master/docs/cn/script_api.md)。
