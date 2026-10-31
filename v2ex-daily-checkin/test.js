@@ -48,14 +48,14 @@ async function check(name, test) {await test(); passed++; console.log("PASS " + 
   await check("capture remains upstream compatible", async () => {const r = await run({request: {method: "GET", headers: {Cookie: cookie}}}); assert.equal(r.data.v2ex_data, cookie); assert.equal(r.requests.length, 0);});
   await check("stale claimed cache + repeated socket failure", async () => {
     const r = await run({data, responses: [closed, closed]});
-    assert.match(r.notes, /网络连接被远端关闭/); assert(!/实时确认|复查确认|已签到/.test(r.notes));
+    assert.match(r.notes, /网络连接被远端关闭/); assert(!/签到成功|今日已签到|已签到/.test(r.notes));
     assert.equal(r.requests.length, 2); assert(!r.reads.includes("v2ex_html"));
   });
-  await check("read-only retry obtains fresh page", async () => {const r = await run({data, responses: [closed, claimed]}); assert.match(r.notes, /实时确认/); assert.equal(r.requests.length, 2);});
-  await check("fresh claimed page skips redeem", async () => {const r = await run({data, responses: [claimed]}); assert.match(r.notes, /实时确认/); assert.equal(r.requests.length, 1);});
+  await check("read-only retry obtains fresh page", async () => {const r = await run({data, responses: [closed, claimed]}); assert.match(r.notes, /今日已签到/); assert.equal(r.requests.length, 2);});
+  await check("fresh claimed page skips redeem", async () => {const r = await run({data, responses: [claimed]}); assert.match(r.notes, /今日已签到/); assert.equal(r.requests.length, 1);});
   await check("claim requires fresh final confirmation", async () => {
     const r = await run({data, responses: [button, {body: "ok"}, claimed]});
-    assert.match(r.notes, /复查确认/); assert.equal(r.requests.length, 3);
+    assert.match(r.notes, /签到成功/); assert.equal(r.requests.length, 3);
     for (const request of r.requests) {
       assert.equal(request.headers.cookie, cookie);
       assert.equal(request.headers["user-agent"], "(Mozilla/5.0 (iPhone; CPU iPhone OS 15_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.3 Mobile/15E148 Safari/604.1");
@@ -63,15 +63,15 @@ async function check(name, test) {await test(); passed++; console.log("PASS " + 
     }
   });
   await check("claim body alone cannot report success", async () => {const r = await run({data, responses: [button, claimed, button]}); assert.match(r.notes, /复查未确认/);});
-  await check("lost submission response but website confirms", async () => {const r = await run({data, responses: [button, closed, claimed]}); assert.match(r.notes, /复查确认/); assert.equal(r.requests.length, 3);});
+  await check("lost submission response but website confirms", async () => {const r = await run({data, responses: [button, closed, claimed]}); assert.match(r.notes, /签到成功/); assert.equal(r.requests.length, 3);});
   await check("lost submission response never blindly resubmits", async () => {const r = await run({data, responses: [button, closed, button]}); assert.match(r.notes, /本次不重复提交/); assert.equal(r.requests.filter(r => r.url.includes("/redeem?")).length, 1);});
   await check("failed verification cannot reuse stale success", async () => {const r = await run({data, responses: [button, {body: "ok"}, closed, closed]}); assert.match(r.notes, /领取结果未确认/); assert.equal(r.requests.length, 4);});
   for (const status of [403, 429]) await check("HTTP " + status + " stops", async () => {const r = await run({data, responses: [{status}]}); assert.match(r.notes, new RegExp(String(status))); assert.equal(r.requests.length, 1);});
   await check("expired session", async () => {const r = await run({data, responses: [{body: "You need to sign in first"}]}); assert.match(r.notes, /登录已失效/);});
   await check("unknown structure stops", async () => {const r = await run({data, responses: [{body: "unknown"}]}); assert.match(r.notes, /未提交领取请求/); assert.equal(r.requests.length, 1);});
-  await check("same-day failure can run again", async () => {const first = await run({data, responses: [closed, closed]}); const r = await run({data: first.data, responses: [button, {body: "ok"}, claimed]}); assert.match(r.notes, /复查确认/);});
+  await check("same-day failure can run again", async () => {const first = await run({data, responses: [closed, closed]}); const r = await run({data: first.data, responses: [button, {body: "ok"}, claimed]}); assert.match(r.notes, /签到成功/);});
   await check("cached HTML is never saved", async () => {const r = await run({data: {v2ex_data: cookie}, responses: [claimed]}); assert.equal(r.data.v2ex_html, undefined);});
   const plugin = fs.readFileSync(__dirname + "/V2EX_Daily_Checkin.plugin", "utf8");
-  assert.equal(plugin.split("V2EX_Daily_Checkin.js?v=20261025").length - 1, 2);
+  assert.equal(plugin.split("V2EX_Daily_Checkin.js?v=20261031").length - 1, 2);
   console.log(passed + " regression tests passed; plugin references checked");
 })().catch(error => {console.error(error); process.exitCode = 1;});

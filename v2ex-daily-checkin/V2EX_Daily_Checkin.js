@@ -64,7 +64,7 @@
   function runAccount(cookie, callback) {
     readDaily(cookie, function (error, html) {
       if (error) return callback(error);
-      if (claimed(html)) return callback("网站实时确认：今日奖励已领取");
+      if (claimed(html)) return callback("今日已签到，登录奖励已领取");
       var match = /(?:onclick\s*=\s*["'][^"']*location\.href\s*=\s*['"]|<a\b[^>]*href\s*=\s*["'])(\/mission\/daily\/redeem\?once=\d+)['"]/i.exec(html);
       if (!match) return callback("本次页面没有可确认的领取链接，未提交领取请求");
       get(cookie, BASE + match[1], function (claimError, response) {
@@ -72,7 +72,7 @@
         // Re-read even if the submission response was lost: it may have succeeded.
         readDaily(cookie, function (checkError, finalHtml) {
           if (checkError) return callback("领取结果未确认：" + checkError + "；未重复提交，可重新运行检查");
-          if (claimed(finalHtml)) return callback("网站复查确认：今日奖励已领取");
+          if (claimed(finalHtml)) return callback("签到成功，今日登录奖励已领取");
           if (claimError) return callback(networkIssue(claimError) + "；复查未确认领取，本次不重复提交");
           if (status !== 200 && status !== 302 && status !== 303) return callback("领取请求 HTTP " + status + "；复查未确认领取");
           callback("复查未确认领取，未重复提交；可重新运行或在 Safari 查看");

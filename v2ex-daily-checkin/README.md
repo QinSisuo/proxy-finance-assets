@@ -4,6 +4,8 @@
 
 `https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.plugin`
 
+2026-10-31 仅调整通知文案：本次领取成功显示“签到成功，今日登录奖励已领取”；运行前已领取显示“今日已签到，登录奖励已领取”。领取逻辑不变。
+
 ## 2026-10-25 修复：网络失败误报已签到
 
 用户真机日志显示 `Socket closed by remote peer`，之后原版仍然通知“已签到”。已用下载的原脚本复现：`fetchSignInOnce()` 请求失败后捕获异常但没有中止，`signin()` 随后读取上次保存的 `v2ex_html`。旧页面含“每日登录奖励已领取”时，会错误地把历史状态报告为本次结果。
@@ -14,7 +16,7 @@
 
 ## iPhone 更新和第一次测试
 
-1. 在 Loon 更新现有 V2EX 插件，确认脚本 URL 带 `V2EX_Daily_Checkin.js?v=20261025`。
+1. 在 Loon 更新现有 V2EX 插件，确认脚本 URL 带 `V2EX_Daily_Checkin.js?v=20261031`。
 2. 已通过原版保存的 Cookie 可以直接沿用，无需重新登录。手动运行“V2EX 每日奖励”。网站返回明确已领状态时才通知确认；网络仍断开则应显示失败，不能据此声称铜币已到账。
 3. 若无 Cookie 或登录失效，开启插件“捕获登录状态”，保持代理连接及 Loon MITM、证书信任正常。在 Safari 登录 V2EX，从首页进入每日任务页，等到 Cookie 保存通知，再关闭捕获并测试。不要分享 Cookie。
 4. 插件“每日自动领取”默认开启，每天设备本地时间 08:05，可修改时间。每台设备分别授权。若同时安装其他 V2EX 插件，仅保留一份定时任务，避免旧原版继续发出错误通知。

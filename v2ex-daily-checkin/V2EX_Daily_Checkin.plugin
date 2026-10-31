@@ -2,7 +2,7 @@
 #!desc=沿用原版请求方式，修复网络失败误报已签到；每天 08:05
 #!author=anyehttp[https://github.com/anyehttp], QinSisuo
 #!homepage=https://github.com/QinSisuo/proxy-finance-assets
-#!date=2026-10-25
+#!date=2026-10-31
 
 [Argument]
 capture=switch, true, false, tag=捕获登录状态, desc=每台设备首次安装后在 Safari 打开每日任务页；成功后建议关闭
@@ -10,8 +10,8 @@ daily=switch, true, false, tag=每日自动领取, desc=首次安装后请先手
 schedule=input, "5 8 * * *", tag=运行时间, desc=本机时间的五段 Cron 表达式
 
 [Script]
-http-request ^https:\/\/www\.v2ex\.com\/mission\/daily script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261025,tag=V2EX 获取登录状态,timeout=10,enable={capture}
-cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261025,tag=V2EX 每日奖励,timeout=75,enable={daily}
+http-request ^https:\/\/www\.v2ex\.com\/mission\/daily script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261031,tag=V2EX 获取登录状态,timeout=10,enable={capture}
+cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261031,tag=V2EX 每日奖励,timeout=75,enable={daily}
 
 [MITM]
 hostname=www.v2ex.com
