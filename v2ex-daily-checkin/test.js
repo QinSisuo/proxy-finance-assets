@@ -26,6 +26,7 @@ async function run(options, program = source) {
     $done: () => {count++; done();}
   };
   if (options.request) context.$request = options.request;
+  if (options.argument !== undefined) context.$argument = options.argument;
   vm.runInNewContext(program, context);
   let timer;
   try { await Promise.race([complete, new Promise((_, reject) => {timer = setTimeout(() => reject(Error("did not finish")), 2000);})]); }
@@ -79,7 +80,25 @@ async function check(name, test) {await test(); passed++; console.log("PASS " + 
     assert.match(r.notes, /HTTP 302 \/ 跳转到登录页 \/ 复查仍可领/);
     assert(!r.notes.includes("private-token"));
   });
+  await check("manual Cookie takes precedence without replacing saved Cookie", async () => {
+    const manual = 'A2="mock@value"; PB3_SESSION=mock';
+    const r = await run({data, argument: {manualCookie: "Cookie: " + manual}, responses: [claimed]});
+    assert.equal(r.requests.length, 1);
+    assert.equal(r.requests[0].headers.cookie, manual);
+    assert.equal(r.data.v2ex_data, cookie);
+    assert(!r.notes.includes(manual));
+  });
+  await check("empty manual Cookie uses captured value", async () => {
+    const r = await run({data, argument: {manualCookie: " "}, responses: [claimed]});
+    assert.equal(r.requests[0].headers.cookie, cookie);
+  });
+  await check("multiline manual Cookie is rejected", async () => {
+    const r = await run({data, argument: {manualCookie: "A2=mock\nOther: mock"}});
+    assert.equal(r.requests.length, 0);
+    assert.match(r.notes, /单行/);
+  });
   const plugin = fs.readFileSync(__dirname + "/V2EX_Daily_Checkin.plugin", "utf8");
-  assert.equal(plugin.split("V2EX_Daily_Checkin.js?v=20261124b").length - 1, 2);
+  assert.match(plugin, /argument=\[\{manualCookie\}\]/);
+  assert.equal(plugin.split("V2EX_Daily_Checkin.js?v=20261125").length - 1, 2);
   console.log(passed + " regression tests passed; plugin references checked");
 })().catch(error => {console.error(error); process.exitCode = 1;});

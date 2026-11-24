@@ -105,10 +105,14 @@
       if (!$persistentStore.write(captured, COOKIE_KEY)) return finish("Cookie 本机保存失败。");
       return finish("获取签到 Cookie 成功，已保存到本机。请手动运行每日奖励测试。");
     }
-    var saved = $persistentStore.read(COOKIE_KEY) || "";
+    var manual = typeof $argument !== "undefined" && $argument && typeof $argument.manualCookie === "string"
+      ? $argument.manualCookie.trim() : "";
+    manual = manual.replace(/^Cookie:[ \t]*/i, "");
+    if (/[\x00-\x1f\x7f]/.test(manual)) return finish("请在「手动 Cookie」中填写单行 Cookie 值。");
+    var saved = manual || $persistentStore.read(COOKIE_KEY) || "";
     if (!saved) return finish("未检测到 Cookie，请开启捕获并在 Safari 登录 V2EX。");
     // Match the upstream's existing multi-account format without migrating credentials.
-    var accounts = saved.split("@").filter(function (item) { return item.trim(); });
+    var accounts = manual ? [manual] : saved.split("@").filter(function (item) { return item.trim(); });
     if (!accounts.length) return finish("未检测到有效 Cookie，请重新捕获。");
     function next(index) {
       if (index >= accounts.length) return finish(messages.join("\n"));
