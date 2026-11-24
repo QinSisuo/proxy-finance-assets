@@ -16,7 +16,7 @@
 
 ## iPhone 更新和第一次测试
 
-1. 在 Loon 更新现有 V2EX 插件，确认脚本 URL 带 `V2EX_Daily_Checkin.js?v=20261031`。
+1. 在 Loon 更新现有 V2EX 插件，确认脚本 URL 带 `V2EX_Daily_Checkin.js?v=20261124`。
 2. 已通过原版保存的 Cookie 可以直接沿用，无需重新登录。手动运行“V2EX 每日奖励”。网站返回明确已领状态时才通知确认；网络仍断开则应显示失败，不能据此声称铜币已到账。
 3. 若无 Cookie 或登录失效，开启插件“捕获登录状态”，保持代理连接及 Loon MITM、证书信任正常。在 Safari 登录 V2EX，从首页进入每日任务页，等到 Cookie 保存通知，再关闭捕获并测试。不要分享 Cookie。
 4. 插件“每日自动领取”默认开启，每天设备本地时间 08:05，可修改时间。每台设备分别授权。若同时安装其他 V2EX 插件，仅保留一份定时任务，避免旧原版继续发出错误通知。
@@ -45,3 +45,5 @@ Cookie 只保存在设备本地，沿用原版完整 Cookie 方案；没有验�
 开发检查：`node --check V2EX_Daily_Checkin.js` 和 `node test.js`。使用下载的参考脚本复现旧缺陷：`node test.js --reference /path/to/upstream-v2ex.js`。iPhone 用户无需运行开发工具。
 
 Loon 语法与 API：[官方插件示例](https://github.com/Loon0x00/LoonExampleConfig/blob/master/Plugin/Plugin_Example.plugin)、[官方脚本文档](https://github.com/Loon0x00/LoonManual/blob/master/docs/cn/script.md)、[官方 API 文档](https://github.com/Loon0x00/LoonManual/blob/master/docs/cn/script_api.md)。
+
+2026-11-24：补充识别领取响应中的登录失效和网站拒绝。仅网站明确要求重新点击、复查页仍有领取链接时允许额外一次领取，重新获取动态参数；网络错误不重复提交。失败原因尚需用户设备实际返回确认，不能声称已解决连续失败。

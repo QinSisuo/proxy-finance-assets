@@ -61,13 +61,13 @@
       callback("", body);
     });
   }
-  function runAccount(cookie, callback) {
+  function runAccount(cookie, callback, repeated) {
     readDaily(cookie, function (error, html) {
       if (error) return callback(error);
       if (claimed(html)) return callback("今日已签到，登录奖励已领取");
       var match = /(?:onclick\s*=\s*["'][^"']*location\.href\s*=\s*['"]|<a\b[^>]*href\s*=\s*["'])(\/mission\/daily\/redeem\?once=\d+)['"]/i.exec(html);
       if (!match) return callback("本次页面没有可确认的领取链接，未提交领取请求");
-      get(cookie, BASE + match[1], function (claimError, response) {
+      get(cookie, BASE + match[1], function (claimError, response, claimBody) {
         var status = Number(response && response.status);
         // Re-read even if the submission response was lost: it may have succeeded.
         readDaily(cookie, function (checkError, finalHtml) {
@@ -75,7 +75,14 @@
           if (claimed(finalHtml)) return callback("签到成功，今日登录奖励已领取");
           if (claimError) return callback(networkIssue(claimError) + "；复查未确认领取，本次不重复提交");
           if (status !== 200 && status !== 302 && status !== 303) return callback("领取请求 HTTP " + status + "；复查未确认领取");
-          callback("复查未确认领取，未重复提交；可重新运行或在 Safari 查看");
+          var responseProblem = typeof claimBody === "string" ? pageIssue(claimBody) : "";
+          if (responseProblem) return callback("领取未成功：" + responseProblem);
+          var asksAgain = /请重新点击一次以领取每日登录奖励/.test(text(typeof claimBody === "string" ? claimBody : ""));
+          var freshLink = /(?:onclick\s*=\s*["'][^"']*location\.href\s*=\s*['"]|<a\b[^>]*href\s*=\s*["'])(\/mission\/daily\/redeem\?once=\d+)['"]/i.test(finalHtml);
+          if (asksAgain && freshLink && !repeated) return runAccount(cookie, callback, true);
+          if (asksAgain) return callback("网站要求重新点击领取，但本次未能完成；已停止自动提交，请在 Safari 查看");
+          if (freshLink) return callback("领取未成功：任务页仍提供领取按钮，网站未返回可识别的失败原因；请重新捕获登录状态后测试");
+          callback("领取结果未确认：领取页与复查页均没有已领取标志，请在 Safari 查看每日任务页");
         });
       });
     });

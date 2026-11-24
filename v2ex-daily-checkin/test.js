@@ -62,7 +62,7 @@ async function check(name, test) {await test(); passed++; console.log("PASS " + 
       assert.equal(request.headers.Referer, undefined); assert.equal(request["auto-cookie"], undefined); assert.equal(request["auto-redirect"], undefined);
     }
   });
-  await check("claim body alone cannot report success", async () => {const r = await run({data, responses: [button, claimed, button]}); assert.match(r.notes, /复查未确认/);});
+  await check("claim body alone cannot report success", async () => {const r = await run({data, responses: [button, claimed, button]}); assert.match(r.notes, /领取未成功/);});
   await check("lost submission response but website confirms", async () => {const r = await run({data, responses: [button, closed, claimed]}); assert.match(r.notes, /签到成功/); assert.equal(r.requests.length, 3);});
   await check("lost submission response never blindly resubmits", async () => {const r = await run({data, responses: [button, closed, button]}); assert.match(r.notes, /本次不重复提交/); assert.equal(r.requests.filter(r => r.url.includes("/redeem?")).length, 1);});
   await check("failed verification cannot reuse stale success", async () => {const r = await run({data, responses: [button, {body: "ok"}, closed, closed]}); assert.match(r.notes, /领取结果未确认/); assert.equal(r.requests.length, 4);});
@@ -71,7 +71,10 @@ async function check(name, test) {await test(); passed++; console.log("PASS " + 
   await check("unknown structure stops", async () => {const r = await run({data, responses: [{body: "unknown"}]}); assert.match(r.notes, /未提交领取请求/); assert.equal(r.requests.length, 1);});
   await check("same-day failure can run again", async () => {const first = await run({data, responses: [closed, closed]}); const r = await run({data: first.data, responses: [button, {body: "ok"}, claimed]}); assert.match(r.notes, /签到成功/);});
   await check("cached HTML is never saved", async () => {const r = await run({data: {v2ex_data: cookie}, responses: [claimed]}); assert.equal(r.data.v2ex_html, undefined);});
+  await check("claim rejection is reported", async () => {const r = await run({data, responses: [button, {body: "你的浏览器有一些奇奇怪怪的设置"}, button]}); assert.match(r.notes, /网站拒绝/); assert.equal(r.requests.length, 3);});
+  await check("explicit reclick can succeed", async () => {const r = await run({data, responses: [button, {body: "请重新点击一次以领取每日登录奖励"}, button, button, {body: "ok"}, claimed]}); assert.match(r.notes, /签到成功/); assert.equal(r.requests.filter(r => r.url.includes("/redeem?")).length, 2);});
+  await check("explicit reclick is bounded", async () => {const again = {body: "请重新点击一次以领取每日登录奖励"}; const r = await run({data, responses: [button, again, button, button, again, button]}); assert.match(r.notes, /已停止自动提交/); assert.equal(r.requests.filter(r => r.url.includes("/redeem?")).length, 2);});
   const plugin = fs.readFileSync(__dirname + "/V2EX_Daily_Checkin.plugin", "utf8");
-  assert.equal(plugin.split("V2EX_Daily_Checkin.js?v=20261031").length - 1, 2);
+  assert.equal(plugin.split("V2EX_Daily_Checkin.js?v=20261124").length - 1, 2);
   console.log(passed + " regression tests passed; plugin references checked");
 })().catch(error => {console.error(error); process.exitCode = 1;});
