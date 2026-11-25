@@ -157,7 +157,7 @@ check("plugin imports one script URL and schedules local 08:05", async () => {
   assert(!generic.includes("${daily}"));
   for (const line of rules) {
     const match = /script\("([^"]+)"/.exec(line);
-    assert.equal(match[1], "https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125.2");
+    assert.equal(match[1], "https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125.3");
   }
 });
 check("no credential prompts before making any request", async () => {
@@ -222,8 +222,10 @@ check("multiline manual input stops ahead of network and never falls back", asyn
   assert.match(r.notes, /单行|格式|无效/);
 });
 check("empty manual input uses valid capture", async () => {
-  const r = await sequence([claimed], [daily], {data: usual(), argument: {manualCookie: " "}});
-  sameFields(requestHeader(r.requests[0], "cookie"), cookie);
+  for (const emptyVal of [" ", '""', "''", ' " " ']) {
+    const r = await sequence([claimed], [daily], {data: usual(), argument: {manualCookie: emptyVal}});
+    sameFields(requestHeader(r.requests[0], "cookie"), cookie);
+  }
 });
 check("old single-account Cookie containing @ stays one account", async () => {
   const old = 'A2="old@value"; PB3_SESSION=old-session';

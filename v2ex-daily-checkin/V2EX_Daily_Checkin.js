@@ -5,7 +5,7 @@
   const DAILY = HOME + "mission/daily";
   const SESSION = "v2ex_daily_session_v2";
   const LEASE = "v2ex_daily_running_v2";
-  const AGENT = "V2EX-Daily-Checkin/20261125.2 (Loon)";
+  const AGENT = "V2EX-Daily-Checkin/20261125.3 (Loon)";
   const DAILY_URL = /^https:\/\/www\.v2ex\.com\/mission\/daily(?:\?[^#]*)?$/;
   const intercepted = typeof $request !== "undefined";
   const args = typeof $argument !== "undefined" && $argument || {};
@@ -36,8 +36,12 @@
   class CredentialError extends Error {}
 
   function credentials() {
-    const manual = args.manualCookie;
-    if (typeof manual === "string" && manual.trim()) {
+    const rawManual = typeof args.manualCookie === "string" ? args.manualCookie.trim() : "";
+    let manual = rawManual.replace(/^["']\s*["']$/, "").trim();
+    if (manual) {
+      if ((manual.startsWith('"') && manual.endsWith('"')) || (manual.startsWith("'") && manual.endsWith("'"))) {
+        manual = manual.slice(1, -1).trim();
+      }
       const value = authCookie(manual.replace(/^Cookie:[ ]*/i, ""));
       if (!value) throw new CredentialError("手动 Cookie 格式无效。请填写单行登录 Cookie，或清空后在 Safari 授权。");
       return {source: "手动", values: [value]};
