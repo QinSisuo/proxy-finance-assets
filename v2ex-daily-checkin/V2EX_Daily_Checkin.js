@@ -5,8 +5,8 @@
   const DAILY = HOME + "mission/daily";
   const SESSION = "v2ex_daily_session_v2";
   const LEASE = "v2ex_daily_running_v2";
-  const AGENT = "V2EX-Daily-Checkin/20261125.3 (Loon)";
-  const DAILY_URL = /^https:\/\/www\.v2ex\.com\/mission\/daily(?:\?[^#]*)?$/;
+  const AGENT = "V2EX-Daily-Checkin/20261126.1 (Loon)";
+  const DAILY_URL = /^https:\/\/(?:www\.)?v2ex\.com\/mission\/daily(?:\?[^#]*)?$/;
   const intercepted = typeof $request !== "undefined";
   const args = typeof $argument !== "undefined" && $argument || {};
   const read = key => $persistentStore.read(key) || "";
@@ -140,7 +140,7 @@
       }
       var a = attrs(m[3]), classes = a["class"] || "";
       // A base URL can change the destination of a displayed relative navigation.
-      if (tag === "base" && a.href && !/^https:\/\/www\.v2ex\.com(?:\/[^?#]*)?$/.test(a.href)) conflict = true;
+      if (tag === "base" && a.href && !/^https:\/\/(?:www\.)?v2ex\.com(?:\/[^?#]*)?$/.test(a.href)) conflict = true;
       var hidden = parent.hidden || /^(template|noscript|iframe|object|svg|head)$/i.test(tag) ||
         a.hidden !== undefined || a.inert !== undefined || a["aria-hidden"] === "true" ||
         /(?:^|\s)(?:hidden|d-none|hide)(?:\s|$)/i.test(classes) ||
@@ -157,7 +157,7 @@
           if (/\/mission\/daily\/redeem\b/i.test(href + " " + js)) {
             var assignment = /^((?:window\.)?location\.href)\s*=\s*(["'])([^"']+)\2\s*;?$/i.exec(js);
             var url = tag === "a" && !js ? href : (tag !== "a" && !href && assignment ? assignment[3] : "");
-            var action = /^(?:https:\/\/www\.v2ex\.com)?(\/mission\/daily\/redeem\?once=\d+)$/.exec(url);
+            var action = /^(?:https:\/\/(?:www\.)?v2ex\.com)?(\/mission\/daily\/redeem\?once=\d+)$/.exec(url);
             var otherEvent = Object.keys(a).some(function (k) { return /^on/i.test(k) && k !== "onclick"; });
             if (!action || a.duplicate || otherEvent || parent.inForm || a.form !== undefined ||
                 a.formaction !== undefined || (path && path !== action[1])) conflict = true;
@@ -188,7 +188,7 @@
     if (status === 403 || status === 429) return {kind: "blocked", status};
     if (status >= 300 && status < 400) {
       const location = String(header(response.headers, "location"));
-      const path = location.indexOf(HOME) === 0 ? location.slice(HOME.length - 1) : location;
+      const path = location.replace(/^https?:\/\/(?:www\.)?v2ex\.com(?:\/|$)/i, "/");
       if (/^\/signin(?:[?#]|$)/.test(path)) return {kind: "login", status};
       if (/^\/mission\/daily(?:[?#]|$)/.test(path)) return {kind: "dailyRedirect", status};
       return {kind: "redirect", status};

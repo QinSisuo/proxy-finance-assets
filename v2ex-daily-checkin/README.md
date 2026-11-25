@@ -7,13 +7,13 @@
 此版本使用 Loon 3.5.1（Build 983）起支持的脚本语法。
 
 - **首次安装** — 用 iPhone 打开[在 Loon 中安装](https://www.nsloon.com/openloon/import?plugin=https%3A%2F%2Fraw.githubusercontent.com%2FQinSisuo%2Fproxy-finance-assets%2Fmain%2Fv2ex-daily-checkin%2FV2EX_Daily_Checkin.plugin)。也可以在 Loon 的「插件」中添加远程插件，长按复制[插件订阅地址](https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.plugin)。
-- **已有本插件** — 进入「V2EX 每日登录奖励」详情，点右上角更新。确认能在插件的脚本列表看到「V2EX 检查登录」，以及结尾为 `V2EX_Daily_Checkin.js?v=20261125.3` 的脚本地址。保留一份启用的 V2EX 定时任务即可。
+- **已有本插件** — 进入「V2EX 每日登录奖励」详情，点右上角更新。确认能在插件的脚本列表看到「V2EX 检查登录」，以及结尾为 `V2EX_Daily_Checkin.js?v=20261126.1` 的脚本地址。保留一份启用的 V2EX 定时任务即可。
 - 本插件的配置引用同仓库的 JavaScript 文件，由 Loon 下载。官方脚本规则接受文件路径或远程 URL，没有文档化的内嵌 JS 正文写法。手机上只需要安装上面的插件。[Loon 插件格式](https://nsloon.app/docs/Plugin/) · [脚本路径与定时规则](https://nsloon.app/docs/Script/script_v2/) · [导入链接格式](https://nsloon.app/docs/Scheme/)
 
 ## 用 Safari 授权
 
 1. 保持 Loon 代理连接。在插件内打开「捕获登录状态」，「手动 Cookie」留空。旧设备已有可用凭据时，可先跳到下一节做只读测试。
-2. 捕获需要在 Loon 内启用 HTTPS 解密（MitM），并安装和信任**自己这台设备上 Loon 的 CA 证书**。如刚安装描述文件，到 iOS「设置 → 通用 → 关于本机 → 证书信任设置」启用该证书的完全信任。本插件只声明 `www.v2ex.com`。关闭捕获只会停用响应脚本，插件的主机声明仍然存在。定时脚本自行发起 HTTPS 请求，已有凭据时不依赖 Safari 流量捕获。[Loon 的 MitM 配置](https://nsloon.app/en/docs/MitM/) · [Loon 关于证书与解密的说明](https://nsloon.app/en/privacy/)
+2. 捕获需要在 Loon 内启用 HTTPS 解密（MitM），并安装和信任**自己这台设备上 Loon 的 CA 证书**。如刚安装描述文件，到 iOS「设置 → 通用 → 关于本机 → 证书信任设置」启用该证书的完全信任。本插件声明 `www.v2ex.com` 与 `v2ex.com`。关闭捕获只会停用响应脚本，插件的主机声明仍然存在。定时脚本自行发起 HTTPS 请求，已有凭据时不依赖 Safari 流量捕获。[Loon 的 MitM 配置](https://nsloon.app/en/docs/MitM/) · [Loon 关于证书与解密的说明](https://nsloon.app/en/privacy/)
 3. 在这台 iPhone 的 **Safari** 登录自己的账号，从 V2EX 首页进入「领取今日的登录奖励」。已领取时也可以打开每日任务页，再刷新一次。等 Loon 提示保存成功后，关闭「捕获登录状态」。整个过程无需查看、复制或发送 Cookie。[V2EX 首页](https://www.v2ex.com/) · [每日任务页](https://www.v2ex.com/mission/daily)
 4. 保存成功表示 Safari 返回了可识别的已登录任务页。下一步检查 Loon 自己能否使用这份凭据访问同一页面。
 
@@ -51,7 +51,7 @@
 | 现象 | 在 iPhone 上怎么查 |
 | --- | --- |
 | Safari 能领，Loon 报登录失效 | 运行「V2EX 检查登录」复现。先确认手动值是否仍在覆盖自动凭据，再按授权步骤刷新一次任务页。若仍失效，保留通知中的阶段和 HTTP 状态即可。 |
-| 刷新 Safari 没有保存通知 | 核对主机是 `www.v2ex.com`，页面是任务页，捕获开关、Loon 隧道和证书信任均已开启。在插件中确认脚本已下载，并检查是否有其他插件同时匹配这个页面。 |
+| 刷新 Safari 没有保存通知 | 核对主机是 `www.v2ex.com` 或 `v2ex.com`，页面是任务页，捕获开关、Loon 隧道和证书信任均已开启。在插件中确认脚本已下载，并检查是否有其他插件同时匹配这个页面。 |
 | 领取后仍有按钮 | 到 Safari 打开同一账号的任务页及账户余额。还可领时可直接手动领取。单凭这个现象无法确定 Cookie 过期、网站改版或具体拦截原因。 |
 | HTTP 403、429、验证码或网站要求手动操作 | 403 或验证提示按网页要求处理；429 表示请求受限，稍后再查看。不要连续点运行。 |
 | 超时、远端断开或复查失败 | 在 Loon 中区分失败发生在读任务页、提交还是复查。提交过则先看账单，可稍后运行「V2EX 检查登录」重查。 |

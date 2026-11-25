@@ -136,7 +136,7 @@ check("plugin imports one script URL and schedules local 08:05", async () => {
   assert.match(plugin, /^#!name=.+$/m);
   assert.match(plugin, /^\[Argument\]$/m);
   assert.match(plugin, /^schedule\s*=\s*input,\s*"5 8 \* \* \*"/m);
-  assert.match(plugin, /^hostname\s*=\s*www\.v2ex\.com\s*$/m);
+  assert.match(plugin, /^hostname\s*=\s*www\.v2ex\.com,\s*v2ex\.com\s*$/m);
   const rules = plugin.split(/^\[Script\]\s*$/m)[1].split(/^\[/m)[0].trim().split("\n").filter(line => line.trim() && !line.startsWith("#"));
   assert.equal(rules.length, 3);
   const capture = rules.find(line => line.startsWith("response "));
@@ -144,8 +144,8 @@ check("plugin imports one script URL and schedules local 08:05", async () => {
   const guard = /\$\{url\}\s*~=\s*\/(\S+)\/([ims]*)\s/.exec(capture);
   assert(guard, "URL guard required for response scripts");
   const rx = new RegExp(guard[1], guard[2]);
-  for (const value of [daily, daily + "?from=home"]) assert(rx.test(value));
-  for (const value of [daily + "/redeem", origin.replace("www.", "") + "/mission/daily", daily + "Extra"]) assert(!rx.test(value));
+  for (const value of [daily, daily + "?from=home", origin.replace("www.", "") + "/mission/daily", origin.replace("www.", "") + "/mission/daily?from=home"]) assert(rx.test(value));
+  for (const value of [daily + "/redeem", origin.replace("www.", "") + "/mission/daily/redeem", daily + "Extra", "https://example.invalid/mission/daily"]) assert(!rx.test(value));
   assert.match(capture, /requires_body\s*=\s*true/i);
   assert.match(capture, /enable[d]?\s*=\s*\$\{capture\}/);
   const cron = rules.find(line => line.startsWith("cron ${schedule}"));
@@ -157,7 +157,7 @@ check("plugin imports one script URL and schedules local 08:05", async () => {
   assert(!generic.includes("${daily}"));
   for (const line of rules) {
     const match = /script\("([^"]+)"/.exec(line);
-    assert.equal(match[1], "https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125.3");
+    assert.equal(match[1], "https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261126.1");
   }
 });
 check("no credential prompts before making any request", async () => {
@@ -168,6 +168,15 @@ check("no credential prompts before making any request", async () => {
 for (const [name, response] of [["available", available], ["already claimed", claimed]]) {
   check("capture verified Safari page (" + name + ") and keep only candidate auth fields", async () => {
     const r = await run({...captureOptions(response, {url: daily + "?from=home"}), data: {}});
+    sameFields(r.data[storeKey], cookie);
+    assert(!r.data.v2ex_data);
+    assert.equal(r.done[0].length, 1);
+    assert.deepEqual(Object.keys(r.done[0][0]), [], "pass the original Safari response through");
+    assert.match(r.notes, /保存|授权/);
+  });
+  check("capture verified Safari page on apex domain v2ex.com (" + name + ")", async () => {
+    const apexUrl = origin.replace("www.", "") + "/mission/daily";
+    const r = await run({...captureOptions(response, {url: apexUrl}), data: {}});
     sameFields(r.data[storeKey], cookie);
     assert(!r.data.v2ex_data);
     assert.equal(r.done[0].length, 1);
