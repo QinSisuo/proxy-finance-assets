@@ -1,18 +1,20 @@
 #!name=V2EX 每日登录奖励
-#!desc=沿用原版请求方式，修复网络失败误报已签到；每天 08:05
-#!author=anyehttp[https://github.com/anyehttp], QinSisuo
-#!homepage=https://github.com/QinSisuo/proxy-finance-assets
+#!desc=在 Safari 授权，每天 08:05 按任务页领取，可先仅检查登录状态
+#!author=QinSisuo
+#!homepage=https://github.com/QinSisuo/proxy-finance-assets/tree/main/v2ex-daily-checkin
+#!loon_version=3.5.1(983)
 #!date=2026-11-25
 
 [Argument]
-manualCookie=input, "", tag=手动 Cookie, desc=仅填写本人 V2EX Cookie。留空使用自动捕获的值
-capture=switch, true, false, tag=捕获登录状态, desc=每台设备首次安装后在 Safari 打开每日任务页；成功后建议关闭
-daily=switch, true, false, tag=每日自动领取, desc=首次安装后请先手动测试
-schedule=input, "5 8 * * *", tag=运行时间, desc=本机时间的五段 Cron 表达式
+capture=switch,true,tag=捕获登录状态,desc=在 Safari 从 V2EX 首页进入每日任务页，授权后关闭
+manualCookie=input,"",tag=手动 Cookie,desc=可选。留空使用设备授权，填写后优先使用手动值
+daily=switch,true,tag=每日自动领取,desc=同一个账号建议只在一台设备上开启
+schedule=input,"5 8 * * *",tag=运行时间,desc=设备本地时间，默认每天 08:05
 
 [Script]
-http-request ^https:\/\/www\.v2ex\.com\/mission\/daily script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125,tag=V2EX 获取登录状态,timeout=10,enable={capture}
-cron {schedule} script-path=https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125,tag=V2EX 每日奖励,timeout=120,enable={daily},argument=[{manualCookie}]
+response if ${url} ~= /^https:\/\/www\.v2ex\.com\/mission\/daily(?:\?[^#]*)?$/ && ${request.method} == "GET" then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125.2") with enable=${capture}, tag="V2EX 获取登录状态", requires_body=true, timeout=10
+generic then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125.2", {${manualCookie}}) with tag="V2EX 检查登录", timeout=120
+cron ${schedule} then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261125.2", {${manualCookie}, ${daily}}) with enable=${daily}, tag="V2EX 每日奖励", timeout=120
 
 [MITM]
 hostname=www.v2ex.com
