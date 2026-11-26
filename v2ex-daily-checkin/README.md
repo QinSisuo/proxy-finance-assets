@@ -7,7 +7,7 @@
 此版本使用 Loon 3.5.1（Build 983）起支持的脚本语法。
 
 - **首次安装** — 用 iPhone 打开[在 Loon 中安装](https://www.nsloon.com/openloon/import?plugin=https%3A%2F%2Fraw.githubusercontent.com%2FQinSisuo%2Fproxy-finance-assets%2Fmain%2Fv2ex-daily-checkin%2FV2EX_Daily_Checkin.plugin)。也可以在 Loon 的「插件」中添加远程插件，长按复制[插件订阅地址](https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.plugin)。
-- **已有本插件** — 进入「V2EX 每日登录奖励」详情，点右上角更新。确认能在插件的脚本列表看到「V2EX 检查登录」，以及结尾为 `V2EX_Daily_Checkin.js?v=20261127.7` 的脚本地址。保留一份启用的 V2EX 定时任务即可。
+- **已有本插件** — 进入「V2EX 每日登录奖励」详情，点右上角更新。确认能在插件的脚本列表看到「V2EX 检查登录」，以及结尾为 `V2EX_Daily_Checkin.js?v=20261127.8` 的脚本地址。保留一份启用的 V2EX 定时任务即可。
 - 本插件的配置引用同仓库的 JavaScript 文件，由 Loon 下载。官方脚本规则接受文件路径或远程 URL，没有文档化的内嵌 JS 正文写法。手机上只需要安装上面的插件。[Loon 插件格式](https://nsloon.app/docs/Plugin/) · [脚本路径与定时规则](https://nsloon.app/docs/Script/script_v2/) · [导入链接格式](https://nsloon.app/docs/Scheme/)
 
 ## 用 Safari 授权

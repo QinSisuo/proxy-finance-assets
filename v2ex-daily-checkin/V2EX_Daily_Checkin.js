@@ -5,7 +5,7 @@
   const DAILY = HOME + "mission/daily";
   const SESSION = "v2ex_daily_session_v2";
   const LEASE = "v2ex_daily_running_v2";
-  const VERSION = "20261127.7";
+  const VERSION = "20261127.8";
   const AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1";
   const DAILY_URL = /^https:\/\/(?:www\.)?v2ex\.com\/mission\/daily(?:\?[^#]*)?$/;
   const intercepted = typeof $request !== "undefined";
@@ -129,7 +129,7 @@
         if (!words) continue;
         visible.push(words);
         // Authenticated Safari: div#Main > div.box > div.cell > span.gray, with leading spacing.
-        if (!parent.side && (/^(?:(?:\d{4}[-\/]\d{1,2}[-\/]\d{1,2}|\d{8})\s*(?:的\s*)?)?(?:每日登录奖励已领取|今日的登录奖励已领取|已成功领取(?:每日登录奖励)?(?:\s*\d+(?:\.\d+)?\s*铜币)?|(?:Today's |The )?daily login reward has been claimed)[。.!！]?$/i.test(words) || /已连续登录|每日登录奖励\s*\d{8}/i.test(words))) done = true;
+        if (!parent.side && /^(?:(?:\d{4}[-\/]\d{1,2}[-\/]\d{1,2}|\d{8})\s*(?:的\s*)?)?(?:每日登录奖励已领取|今日的登录奖励已领取|已成功领取(?:每日登录奖励)?(?:\s*\d+(?:\.\d+)?\s*铜币)?|(?:Today's |The )?daily login reward has been claimed)[。.!！]?$/i.test(words)) done = true;
         continue;
       }
       var tag = m[2].toLowerCase();
