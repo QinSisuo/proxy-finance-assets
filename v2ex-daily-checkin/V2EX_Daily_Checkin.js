@@ -169,7 +169,10 @@
         stack.push({tag: tag, hidden: hidden, side: side, disabled: disabled, inForm: parent.inForm || tag === "form"});
     }
     var text = visible.join(" ");
-    if (blocked || /浏览器有一些奇奇怪怪的设置|请用一个干净安装的浏览器重试|verify you are human|checking your browser/i.test(text)) return {kind: "blocked"};
+    if (blocked || /浏览器有一些奇奇怪怪的设置|请用一个干净安装的浏览器重试|verify you are human|checking your browser/i.test(text)) {
+      console.log("V2EX 拦截详情: blocked=" + blocked + " 文本=" + text.slice(0, 100));
+      return {kind: "blocked"};
+    }
     if (login || /need to sign in first|你要查看的页面需要先登录|请先登录/i.test(text)) return {kind: "login"};
     if (/请重新点击一次以领取每日登录奖励/.test(text)) return {kind: "again"};
     if (conflict || (done && path)) return {kind: "unknown"};
@@ -280,8 +283,11 @@
     if (!ownsLease()) return {message: "本机运行状态已变化，本次未提交。", stop: true};
 
     const receipt = await get(session, HOME.slice(0, -1) + before.path, DAILY);
+    console.log("V2EX 提交领取响应: HTTP " + receipt.status + " (" + receipt.kind + ")");
     if (isBarrier(receipt)) return {message: "提交领取：" + description(receipt), stop: receipt.kind === "blocked"};
+    if (typeof $loon !== "undefined") await new Promise(r => setTimeout(r, 2000));
     const after = await dailyPage(session, DAILY);
+    console.log("V2EX 复查页面响应: HTTP " + after.status + " (" + after.kind + ")");
     if (after.kind === "claimed") return {message: "签到成功，今日登录奖励已领取"};
     const first = receipt.kind === "claimed" ? "领取响应显示已领" :
       receipt.kind === "unknown" && receipt.status === 200 ? "领取响应 HTTP 200" : description(receipt);
