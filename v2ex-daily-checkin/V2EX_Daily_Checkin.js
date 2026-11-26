@@ -128,7 +128,7 @@
         if (!words) continue;
         visible.push(words);
         // Authenticated Safari: div#Main > div.box > div.cell > span.gray, with leading spacing.
-        if (!parent.side && /^(?:(?:\d{4}[-\/]\d{1,2}[-\/]\d{1,2}|\d{8})\s*(?:的\s*)?)?(?:每日登录奖励已领取|今日的登录奖励已领取|(?:Today's |The )?daily login reward has been claimed)[。.!！]?$/i.test(words)) done = true;
+        if (!parent.side && /^(?:(?:\d{4}[-\/]\d{1,2}[-\/]\d{1,2}|\d{8})\s*(?:的\s*)?)?(?:每日登录奖励已领取|今日的登录奖励已领取|已成功领取(?:每日登录奖励)?(?:\s*\d+(?:\.\d+)?\s*铜币)?|(?:Today's |The )?daily login reward has been claimed)[。.!！]?$/i.test(words)) done = true;
         continue;
       }
       var tag = m[2].toLowerCase();
@@ -216,8 +216,7 @@
   }
 
   function capture() {
-    if ($request.method !== "GET" || !DAILY_URL.test($request.url) ||
-        header($request.headers, "x-loon-checkin")) return "";
+    if ($request.method !== "GET" || !DAILY_URL.test($request.url)) return "";
     if (typeof $response === "undefined") return "请更新插件并刷新脚本后，再从 Safari 进入每日任务页。";
     const page = classify(null, $response, $response.body);
     if (page.kind !== "ready" && page.kind !== "claimed") return "授权未更新。" + description(page);
@@ -241,7 +240,15 @@
           resolve(classify(error, response, body));
         } catch (_) { resolve({kind: "unreadable"}); }
       }
-      const headers = {Cookie: session.cookie, "User-Agent": AGENT, Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "zh-CN,zh-Hans;q=0.9", "Cache-Control": "no-cache", "X-Loon-Checkin": "1"};
+      const headers = {
+        Cookie: session.cookie,
+        "User-Agent": AGENT,
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Dest": "document"
+      };
       if (referer) headers.Referer = referer;
       try {
         $httpClient.get({url, headers, timeout: 10000, insecure: false,
@@ -252,10 +259,11 @@
 
   function isBarrier(page) { return page.kind === "blocked" || page.kind === "login"; }
 
-  async function dailyPage(session) {
+  async function dailyPage(session, referer) {
     if (!session.cookie) return {kind: "login"};
-    let page = await get(session, DAILY, HOME);
-    if (page.kind === "network") page = await get(session, DAILY);
+    const ref = referer || HOME;
+    let page = await get(session, DAILY, ref);
+    if (page.kind === "network") page = await get(session, DAILY, ref);
     if (session.cookie && (page.kind === "claimed" || page.kind === "ready") && session.persist &&
         read(SESSION) === session.prior && session.cookie !== session.prior) {
       if (write(SESSION, session.cookie)) session.prior = session.cookie;
@@ -273,7 +281,7 @@
 
     const receipt = await get(session, HOME.slice(0, -1) + before.path, DAILY);
     if (isBarrier(receipt)) return {message: "提交领取：" + description(receipt), stop: receipt.kind === "blocked"};
-    const after = await dailyPage(session);
+    const after = await dailyPage(session, DAILY);
     if (after.kind === "claimed") return {message: "签到成功，今日登录奖励已领取"};
     const first = receipt.kind === "claimed" ? "领取响应显示已领" :
       receipt.kind === "unknown" && receipt.status === 200 ? "领取响应 HTTP 200" : description(receipt);
