@@ -5,6 +5,7 @@
   const DAILY = HOME + "mission/daily";
   const SESSION = "v2ex_daily_session_v2";
   const LEASE = "v2ex_daily_running_v2";
+  const VERSION = "20261127.6";
   const AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1";
   const DAILY_URL = /^https:\/\/(?:www\.)?v2ex\.com\/mission\/daily(?:\?[^#]*)?$/;
   const intercepted = typeof $request !== "undefined";
@@ -170,8 +171,11 @@
     }
     var text = visible.join(" ");
     if (done && !path) return {kind: "claimed"};
-    if (blocked || /浏览器有一些奇奇怪怪的设置|请用一个干净安装的浏览器重试|verify you are human|checking your browser/i.test(text)) {
-      console.log("V2EX 拦截详情: blocked=" + blocked + " 文本=" + text.slice(0, 100));
+    var mBlocked = /浏览器有一些奇奇怪怪的设置|请用一个干净安装的浏览器重试|verify you are human|checking your browser/i.exec(text);
+    if (blocked || mBlocked) {
+      var idx = text.indexOf("日常任务");
+      var snippet = idx >= 0 ? text.slice(idx, idx + 120) : text.slice(0, 120);
+      console.log("[v" + VERSION + "] V2EX 拦截命中: " + (mBlocked ? mBlocked[0] : "flag") + " | 正文: " + snippet);
       return {kind: "blocked"};
     }
     if (login || /need to sign in first|你要查看的页面需要先登录|请先登录/i.test(text)) return {kind: "login"};
@@ -292,11 +296,11 @@
     if (!ownsLease()) return {message: "本机运行状态已变化，本次未提交。", stop: true};
 
     const receipt = await get(session, HOME.slice(0, -1) + before.path, DAILY);
-    console.log("V2EX 提交领取响应: HTTP " + receipt.status + " (" + receipt.kind + ")");
+    console.log("[v" + VERSION + "] V2EX 提交领取响应: HTTP " + receipt.status + " (" + receipt.kind + ")");
     if (isBarrier(receipt)) return {message: "提交领取：" + description(receipt), stop: receipt.kind === "blocked"};
     if (typeof $loon !== "undefined") await new Promise(r => setTimeout(r, 2000));
     const after = await dailyPage(session, DAILY);
-    console.log("V2EX 复查页面响应: HTTP " + after.status + " (" + after.kind + ")");
+    console.log("[v" + VERSION + "] V2EX 复查页面响应: HTTP " + after.status + " (" + after.kind + ")");
     if (after.kind === "claimed") return {message: "签到成功，今日登录奖励已领取"};
     const first = receipt.kind === "claimed" ? "领取响应显示已领" :
       receipt.kind === "unknown" && receipt.status === 200 ? "领取响应 HTTP 200" : description(receipt);
@@ -328,7 +332,7 @@
       const result = await runAccount(session, onlyCheck, ownsLease);
       const prefix = auth.values.length > 1 ? "账号 " + (reports.length + 1) + " · " : "";
       reports.push(prefix + result.message);
-      console.log("V2EX · " + auth.source + " · " + result.message);
+      console.log("[v" + VERSION + "] V2EX · " + auth.source + " · " + result.message);
       if (result.stop) break;
     }
     return reports.join("\n");
@@ -341,7 +345,7 @@
     finally {
       try {
         try { if (lease && read(LEASE) === lease) write(LEASE, ""); } catch (_) {}
-        if (message) $notification.post("V2EX 每日奖励", "", message, HOME);
+        if (message) $notification.post("V2EX 每日奖励", "", "[v" + VERSION + "] " + message, HOME);
       } finally { if (intercepted) $done({}); else $done(); }
     }
   })();
