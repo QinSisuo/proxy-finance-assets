@@ -91,7 +91,7 @@
         const expired = /^-?\d+$/.test(attrs["max-age"]) ? Number(attrs["max-age"]) <= 0 :
           Date.parse(attrs.expires) <= Date.now();
         if (expired || !pair[2] || pair[2] === '""') delete values[pair[1]];
-        else if (authCookie(pair[0])) values[pair[1]] = pair[2];
+        else if (authCookie(pair[0])) { if (pair[1] === "PB3_SESSION" && values["PB3_SESSION"]) continue; values[pair[1]] = pair[2]; }
       }
     }
     return Object.keys(values).map(k => k + "=" + values[k]).join("; ");
