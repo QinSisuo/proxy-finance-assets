@@ -169,6 +169,7 @@
         stack.push({tag: tag, hidden: hidden, side: side, disabled: disabled, inForm: parent.inForm || tag === "form"});
     }
     var text = visible.join(" ");
+    if (done && !path) return {kind: "claimed"};
     if (blocked || /浏览器有一些奇奇怪怪的设置|请用一个干净安装的浏览器重试|verify you are human|checking your browser/i.test(text)) {
       console.log("V2EX 拦截详情: blocked=" + blocked + " 文本=" + text.slice(0, 100));
       return {kind: "blocked"};
@@ -253,9 +254,17 @@
         "Sec-Fetch-Dest": "document"
       };
       if (referer) headers.Referer = referer;
+      const isDevice = typeof $loon !== "undefined";
+      const opts = {
+        url,
+        headers,
+        timeout: 10000,
+        insecure: false,
+        "auto-redirect": isDevice ? true : false,
+        "auto-cookie": isDevice ? true : false
+      };
       try {
-        $httpClient.get({url, headers, timeout: 10000, insecure: false,
-          "auto-redirect": false, "auto-cookie": false}, receive);
+        $httpClient.get(opts, receive);
       } catch (_) { receive("network"); }
     });
   }
