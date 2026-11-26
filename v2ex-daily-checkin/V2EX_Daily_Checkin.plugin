@@ -12,9 +12,9 @@ daily=switch,true,tag=每日自动领取,desc=同一个账号建议只在一台�
 schedule=input,"5 8 * * *",tag=运行时间,desc=设备本地时间，默认每天 08:05
 
 [Script]
-response if ${url} ~= /^https:\/\/(?:www\.)?v2ex\.com\/mission\/daily(?:\?[^#]*)?$/ && ${request.method} == "GET" then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261127.5") with enable=${capture}, tag="V2EX 获取登录状态", requires_body=true, timeout=10
-generic then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261127.5", {${manualCookie}}) with tag="V2EX 检查登录", timeout=120
-cron ${schedule} then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261127.5", {${manualCookie}, ${daily}}) with enable=${daily}, tag="V2EX 每日奖励", timeout=120
+response if ${url} ~= /^https:\/\/(?:www\.)?v2ex\.com\/mission\/daily(?:\?[^#]*)?$/ && ${request.method} == "GET" then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261127.6") with enable=${capture}, tag="V2EX 获取登录状态", requires_body=true, timeout=10
+generic then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261127.6", {${manualCookie}}) with tag="V2EX 检查登录", timeout=120
+cron ${schedule} then script("https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261127.6", {${manualCookie}, ${daily}}) with enable=${daily}, tag="V2EX 每日奖励", timeout=120
 
 [MITM]
 hostname=www.v2ex.com, v2ex.com
