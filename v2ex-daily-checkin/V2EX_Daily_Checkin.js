@@ -5,7 +5,7 @@
   const DAILY = HOME + "mission/daily";
   const SESSION = "v2ex_daily_session_v2";
   const LEASE = "v2ex_daily_running_v2";
-  const AGENT = "V2EX-Daily-Checkin/20261126.1 (Loon)";
+  const AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1";
   const DAILY_URL = /^https:\/\/(?:www\.)?v2ex\.com\/mission\/daily(?:\?[^#]*)?$/;
   const intercepted = typeof $request !== "undefined";
   const args = typeof $argument !== "undefined" && $argument || {};
@@ -217,7 +217,7 @@
 
   function capture() {
     if ($request.method !== "GET" || !DAILY_URL.test($request.url) ||
-        header($request.headers, "user-agent") === AGENT) return "";
+        header($request.headers, "x-loon-checkin")) return "";
     if (typeof $response === "undefined") return "请更新插件并刷新脚本后，再从 Safari 进入每日任务页。";
     const page = classify(null, $response, $response.body);
     if (page.kind !== "ready" && page.kind !== "claimed") return "授权未更新。" + description(page);
@@ -241,7 +241,7 @@
           resolve(classify(error, response, body));
         } catch (_) { resolve({kind: "unreadable"}); }
       }
-      const headers = {Cookie: session.cookie, "User-Agent": AGENT, Accept: "text/html", "Cache-Control": "no-cache"};
+      const headers = {Cookie: session.cookie, "User-Agent": AGENT, Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "zh-CN,zh-Hans;q=0.9", "Cache-Control": "no-cache", "X-Loon-Checkin": "1"};
       if (referer) headers.Referer = referer;
       try {
         $httpClient.get({url, headers, timeout: 10000, insecure: false,
@@ -254,7 +254,7 @@
 
   async function dailyPage(session) {
     if (!session.cookie) return {kind: "login"};
-    let page = await get(session, DAILY);
+    let page = await get(session, DAILY, HOME);
     if (page.kind === "network") page = await get(session, DAILY);
     if (session.cookie && (page.kind === "claimed" || page.kind === "ready") && session.persist &&
         read(SESSION) === session.prior && session.cookie !== session.prior) {

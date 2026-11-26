@@ -157,7 +157,7 @@ check("plugin imports one script URL and schedules local 08:05", async () => {
   assert(!generic.includes("${daily}"));
   for (const line of rules) {
     const match = /script\("([^"]+)"/.exec(line);
-    assert.equal(match[1], "https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261126.1");
+    assert.equal(match[1], "https://raw.githubusercontent.com/QinSisuo/proxy-finance-assets/main/v2ex-daily-checkin/V2EX_Daily_Checkin.js?v=20261126.2");
   }
 });
 check("no credential prompts before making any request", async () => {
